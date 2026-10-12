@@ -1,0 +1,25 @@
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+/out/
+
+### VS Code ###
+.vscode/
+
+### Command Code ###
+.commandcode/
+
+### Frontend ###
+node_modules/
+dist/
+
+### Logs ###
+logs/
+*.log
+
+### OS ###
+.DS_Store
+Thumbs.db
+desktop.ini

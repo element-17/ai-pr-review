@@ -1,0 +1,42 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://${pr.datasource.host}:${pr.datasource.port}/${pr.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: ${pr.datasource.driver-class-name}
+    username: ${pr.datasource.username}
+    password: ${pr.datasource.password}
+  data:
+    redis:
+      host: ${pr.redis.host}
+      port: ${pr.redis.port}
+      password: ${pr.redis.password}
+      database: ${pr.redis.database}
+mybatis-plus:
+  #mapper????
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.pr.entity
+  configuration:
+    #??????
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com:
+      sky:
+        mapper: debug
+        service: info
+        controller: info
+pr:
+  jwt:
+    # ??jwt??????????
+    admin-secret-key:
+    # ??jwt????
+    admin-ttl:
+    # ?????????????
+    admin-token-name:
+
+    user-secret-key:
+    user-ttl:
+    user-token-name:
