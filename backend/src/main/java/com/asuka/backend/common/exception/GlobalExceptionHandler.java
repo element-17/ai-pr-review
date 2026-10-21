@@ -8,9 +8,14 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.Objects;
 
 /**
  * 全局异常处理器。
@@ -44,6 +49,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 查询参数绑定校验失败（GET 请求的 DTO、日期格式等）。
+     */
+    @ExceptionHandler(BindException.class)
+    public Result<Void> handleBindException(BindException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("参数校验失败");
+        return Result.error(400, message);
+    }
+
+    /**
      * 单个参数校验失败（@RequestParam、@PathVariable 等）。
      */
     @ExceptionHandler(ConstraintViolationException.class)
@@ -53,6 +71,22 @@ public class GlobalExceptionHandler {
                 .map(violation -> violation.getMessage())
                 .orElse("参数校验失败");
         return Result.error(400, message);
+    }
+
+    /**
+     * 参数类型转换失败，例如分页参数传了非数字。
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public Result<Void> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return Result.error(400, "参数格式错误");
+    }
+
+    /**
+     * 请求体不是合法 JSON 或字段类型不匹配。
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public Result<Void> handleNotReadable(HttpMessageNotReadableException ex) {
+        return Result.error(400, "请求体格式错误");
     }
 
     /**

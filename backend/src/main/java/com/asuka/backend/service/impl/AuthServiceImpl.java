@@ -14,6 +14,7 @@ import com.asuka.backend.entity.SysUser;
 import com.asuka.backend.mapper.SysUserMapper;
 import com.asuka.backend.service.AuthService;
 import com.asuka.backend.service.SysUserService;
+import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.vo.LoginVO;
 import com.asuka.backend.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final SysUserMapper sysUserMapper;
     private final SysUserService sysUserService;
+    private final UserSettingService userSettingService;
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -159,7 +161,9 @@ public class AuthServiceImpl implements AuthService {
         UserCreateDTO createDTO = new UserCreateDTO();
         BeanUtils.copyProperties(dto, createDTO);
         createDTO.setRole(AuthConstant.ROLE_USER);
-        sysUserService.createUser(createDTO);
+        Long userId = sysUserService.createUser(createDTO);
+        // 注册时同步初始化默认设置，避免第一次打开设置页时出现空状态
+        userSettingService.initDefault(userId);
     }
 
     /**

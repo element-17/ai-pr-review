@@ -31,6 +31,10 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/auth/register",
+                        // 任务子资源允许游客令牌访问；真正的归属和过期校验在 TaskAccessService 中完成。
+                        // /api/tasks 本身（我的任务列表）不在此列，仍然要求登录。
+                        "/api/tasks/*",
+                        "/api/tasks/*/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",

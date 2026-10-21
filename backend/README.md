@@ -72,6 +72,33 @@ Authorization: Bearer <accessToken>
 | PUT | `/api/users/{id}/status` | 启用/禁用 |
 | GET | `/api/users/stats/roles` | 按角色聚合统计 |
 
+## 业务接口（平凡需求后端）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/users/me/settings` | 读取个人设置；没有设置行时返回默认值 |
+| PATCH | `/api/users/me/settings` | 部分更新主题、语言、检查类别、忽略目录和规模上限 |
+| GET | `/api/tasks` | 我的历史任务，支持仓库、PR 编号、状态、日期和排序 |
+| GET | `/api/tasks/{taskId}` | 任务详情、PR 信息、统计、重点文件和下钻 ID |
+| GET | `/api/tasks/{taskId}/progress` | 轻量进度轮询 |
+| GET | `/api/tasks/{taskId}/files` | 文件清单，支持状态、变更类型、重点文件和路径搜索 |
+| GET | `/api/tasks/{taskId}/files/{fileId}` | 文件 patch、GitHub 链接和关联问题 |
+| GET | `/api/tasks/{taskId}/issues` | 问题组合筛选、排序、关键词搜索和任务级统计 |
+| GET | `/api/tasks/{taskId}/issues/{issueId}` | 问题详情、证据和 GitHub 行号链接 |
+| PATCH | `/api/tasks/{taskId}/issues/{issueId}` | 更新处理状态、理由或建议，记录最后操作人和时间 |
+| POST | `/api/tasks/{taskId}/issues/{issueId}/undo` | 撤销人工处理 |
+| GET | `/api/tasks/{taskId}/report` | 报告总结与覆盖统计 |
+| GET | `/api/tasks/{taskId}/export` | 导出 Markdown，语言跟随任务固定的报告语言 |
+
+说明：
+
+- 任务子资源支持游客链接：请求头 `X-Guest-Token`，导出场景也支持 `?guestToken=...`；过期链接返回 403。
+- 历史列表 `/api/tasks` 只对登录用户开放，游客任务不会出现在他人的历史记录中。
+- 分页统一返回 `PageResult{total, records}`；成功码沿用当前骨架的 `200`。
+- 为保持字段语义，接口会保留值为 `null` 的字段，例如报告级问题没有 `filePath` 和行号。
+- 任务创建、取消、重试（F03）和 GitHub / AI 分析链路尚未实现；F09 的候选问题入库校验已提供 `ReviewIssueService.saveGeneratedIssues` 作为后续分析模块的入口。
+- 数据库账号模型已统一为 `sys_user`，旧库迁移脚本：`deploy/sql/migration-20261021-unify-sys-user.sql`。
+
 ## 双 token 设计
 
 - **access-token**：Sa-Token 签发，默认 30 分钟，放在 `Authorization: Bearer` 中。
@@ -90,12 +117,14 @@ Redis key：
 ## 代码分层
 
 ```text
-controller  -> 接收请求、参数校验、返回 Result
-service     -> 业务逻辑、事务、token 流程
+controller.auth   -> 公开认证接口
+controller.admin  -> 管理员接口
+controller.user   -> 用户侧业务接口（设置、任务、文件、问题、报告）
+service           -> 业务逻辑、权限校验、事务、token 流程
 service.impl
-mapper      -> BaseMapper 单表 CRUD；XML 复杂查询
-entity      -> 数据库实体，继承 BaseEntity
-dto / vo    -> 入参 / 出参，避免暴露密码等敏感字段
-config      -> MyBatis-Plus、Sa-Token、Swagger、CORS
-common      -> Result、PageResult、异常、上下文、常量
+mapper            -> BaseMapper 单表 CRUD；XML 复杂查询
+entity            -> 数据库实体
+dto / vo          -> 入参 / 出参，避免暴露密码等敏感字段
+config            -> MyBatis-Plus、Sa-Token、Swagger、CORS
+common            -> Result、PageResult、异常、上下文、常量、GitHub 链接工具
 ```
