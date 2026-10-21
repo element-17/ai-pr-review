@@ -18,7 +18,9 @@ spring:
       password: ${pr.redis.password}
       database: ${pr.redis.database}
   jackson:
-    default-property-inclusion: non_null
+    # 接口契约要求“确实没有值”时保留 null（如报告级问题没有文件和行号），
+    # 不使用 non_null 省略字段，避免前端无法区分“字段缺失”和“值为空”。
+    default-property-inclusion: always
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
   # 数据库初始化脚本放在 db/schema.sql，由开发者手动执行；避免每次启动重复建表

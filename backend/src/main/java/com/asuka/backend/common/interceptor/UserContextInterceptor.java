@@ -1,5 +1,6 @@
 package com.asuka.backend.common.interceptor;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.asuka.backend.common.context.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +19,13 @@ public class UserContextInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (StpUtil.isLogin()) {
-            UserContext.setUserId(StpUtil.getLoginIdAsLong());
+        try {
+            if (StpUtil.isLogin()) {
+                UserContext.setUserId(StpUtil.getLoginIdAsLong());
+            }
+        } catch (NotLoginException ignored) {
+            // 任务子资源允许游客令牌访问；无效或过期的 Authorization 按未登录处理，
+            // 真正的游客令牌校验在 TaskAccessService 中完成。
         }
         return true;
     }
