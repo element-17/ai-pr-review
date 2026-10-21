@@ -23,3 +23,7 @@ logs/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+### Local configuration (do not commit credentials) ###
+backend/src/main/resources/application-dev.yml
+backend/src/main/resources/application-local.yml

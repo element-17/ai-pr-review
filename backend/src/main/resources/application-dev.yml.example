@@ -1,0 +1,18 @@
+# 本地开发配置示例
+# 使用方法：
+#   1. 复制本文件为 application-dev.yml；
+#   2. 填入本地 MySQL / Redis 连接信息；
+#   3. application-dev.yml 已被 .gitignore 忽略，不要提交真实密码。
+pr:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: ai-pr-review
+    username: root
+    password: your_mysql_password
+  redis:
+    host: localhost
+    port: 6379
+    password: your_redis_password
+    database: 0
