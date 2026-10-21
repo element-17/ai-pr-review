@@ -53,12 +53,12 @@
 			<artifactId>sa-token-spring-boot4-starter</artifactId>
 			<version>1.46.0</version>
 		</dependency>
-		<!-- Sa-Token 会话持久化到 Redis，配合 refresh-token 实现双 token -->
-		<dependency>
-			<groupId>cn.dev33</groupId>
-			<artifactId>sa-token-redis-template</artifactId>
-			<version>1.46.0</version>
-		</dependency>
+		<!--
+		  本地 Redis 3.0.504 不支持 Sa-Token Redis DAO 使用的 KEEPTTL（Redis 6+），
+		  因此这里不引入 sa-token-redis-template：access-token 会话由 Sa-Token 默认 DAO 管理，
+		  refresh-token 仍通过 StringRedisTemplate 存 Redis，双 token 机制不变。
+		  生产环境升级 Redis 6+ 后可恢复 sa-token-redis-template 依赖。
+		-->
 
 		<!-- OpenAPI / Swagger UI：生成接口文档与在线调试页面 -->
 		<dependency>
