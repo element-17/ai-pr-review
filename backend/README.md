@@ -7,7 +7,7 @@
 - MyBatis-Plus 3.5.17（单表 CRUD、分页、逻辑删除、自动填充）
 - MyBatis 原生 XML（复杂查询、聚合统计）
 - MySQL 8/9
-- Redis（refresh-token 存储；Sa-Token 会话使用默认内存 DAO，兼容本地 Redis 3.0）
+- Redis（Sa-Token 会话 + refresh-token）
 - Sa-Token 1.46.0（access-token + 权限注解）
 - springdoc-openapi 3.1.1（Swagger UI）
 
@@ -73,11 +73,6 @@ Authorization: Bearer <accessToken>
 | GET | `/api/users/stats/roles` | 按角色聚合统计 |
 
 ## 双 token 设计
-
-> 兼容性说明：本地 Redis 3.0.504 不支持 Sa-Token Redis DAO 使用的 `KEEPTTL`（Redis 6+），
-> 因此 access-token 会话使用 Sa-Token 默认内存 DAO，refresh-token 仍存 Redis。
-> 生产环境升级 Redis 6+ 后，可在 `pom.xml` 恢复 `sa-token-redis-template` 依赖。
-> `RedisConfig` 强制 Lettuce 使用 RESP2，兼容旧版 Redis 的握手。
 
 - **access-token**：Sa-Token 签发，默认 30 分钟，放在 `Authorization: Bearer` 中。
 - **refresh-token**：随机 UUID，存 Redis，默认 7 天，只用于 `/api/auth/refresh`。
