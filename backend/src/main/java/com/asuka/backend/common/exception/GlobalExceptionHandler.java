@@ -8,12 +8,15 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Objects;
 
@@ -112,6 +115,18 @@ public class GlobalExceptionHandler {
     public Result<Void> handleDuplicateKey(DuplicateKeyException ex) {
         log.warn("唯一约束冲突：{}", ex.getMessage());
         return Result.error(400, "数据已存在，请勿重复提交");
+    }
+
+    /**
+     * 静态资源不存在：favicon、浏览器扩展探测路径等。
+     *
+     * <p>这类请求不是业务异常，返回 404 即可，不记录 ERROR 堆栈。
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> handleNoResourceFound(NoResourceFoundException ex) {
+        log.debug("静态资源不存在：{}", ex.getResourcePath());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.error(404, "资源不存在"));
     }
 
     /**
