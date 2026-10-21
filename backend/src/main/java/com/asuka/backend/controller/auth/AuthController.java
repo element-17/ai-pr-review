@@ -1,4 +1,4 @@
-package com.asuka.backend.controller;
+package com.asuka.backend.controller.auth;
 
 import com.asuka.backend.common.result.Result;
 import com.asuka.backend.dto.LoginDTO;

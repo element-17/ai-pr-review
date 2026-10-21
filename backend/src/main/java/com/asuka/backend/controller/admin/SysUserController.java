@@ -1,4 +1,4 @@
-package com.asuka.backend.controller;
+package com.asuka.backend.controller.admin;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.asuka.backend.common.constant.AuthConstant;
