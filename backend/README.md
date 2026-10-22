@@ -112,7 +112,8 @@ Authorization: Bearer <accessToken>
 
 - Agent 工具：`read_file`、`find_callers`、`read_tests`、`submit_summary`、`submit_issues`；只读、路径白名单、单文件 20KB 上限，不执行 shell 或任意网络请求。
 - 上下文：GitHub Contents API；TypeScript 和 Python 轻量函数级提取，失败时回退到变更行附近窗口。
-- 批处理：每批 3–5 个文件；每批最多 6 轮模型调用、8 次工具调用；未调用提交工具时先提醒一次，仍失败则该批标记失败并保留其他批次结果。
+- 批处理：每批 3–5 个文件；每批最多 6 轮模型调用、8 次工具调用；`pr.ai.batch-concurrency` 控制批内并发（默认 2，范围 1–4），单批失败隔离，批次完成推进 50–89 进度，取消会中断剩余批次。
+- 未调用提交工具时先提醒一次，仍失败则该批标记失败并保留其他批次结果；批次线程继承任务 traceId。
 - 校验：文件必须属于当前任务；类别/严重度/置信度范围；行号必须落在 patch 新增行；证据不足时置信度降到 60 以下并保持待确认；重复问题合并。
 - 部分完成：批次失败或模型输出被丢弃时 status=4、errorCode=7；已完成结果保留。
 - 版本对比：仅登录本人、同一 PR、两个已完成/部分完成任务；按文件路径（含重命名前后路径）、类别、规范化标题匹配，返回 added/remaining/resolved、`lineShifted` 和总结字段变化；低置信匹配标记 `matchConfidence=low`。
