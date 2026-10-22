@@ -35,6 +35,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         // /api/tasks 本身（我的任务列表）不在此列，仍然要求登录。
                         "/api/tasks/*",
                         "/api/tasks/*/**",
+                        // PR 预览允许游客访问；带 Authorization 时由 Service 校验有效性
+                        "/api/prs/preview",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
