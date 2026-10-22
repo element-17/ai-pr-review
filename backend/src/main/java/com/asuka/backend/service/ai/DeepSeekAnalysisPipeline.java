@@ -27,6 +27,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -37,6 +38,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * DeepSeek agent 分析 pipeline。
@@ -97,6 +103,7 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
         AgentRunContext summaryContext = new AgentRunContext(
                 "summary", taskContext, contextBuilder, summaryFiles, english);
 
+        checkCanceled(task.getId());
         AgentSummary summary;
         try {
             AgentResult result = agentExecutor.run(
@@ -131,54 +138,173 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
         }
 
         int batchSize = Math.max(3, Math.min(5, aiProperties.getBatchSize()));
+        int batchCount = (analyzable.size() + batchSize - 1) / batchSize;
+        int concurrency = Math.max(1, Math.min(4, aiProperties.getBatchConcurrency()));
+        log.info("任务 {} 问题分析分块：files={}, batchSize={}, batches={}, concurrency={}",
+                task.getId(), analyzable.size(), batchSize, batchCount, concurrency);
+
         boolean partial = false;
         Integer errorCode = null;
         String errorMessage = null;
 
-        for (int start = 0; start < analyzable.size(); start += batchSize) {
-            checkCanceled(task.getId());
-            List<TaskFile> batch = analyzable.subList(start,
-                    Math.min(start + batchSize, analyzable.size()));
-            List<Map<String, Object>> batchMeta = batch.stream().map(this::fileMeta).toList();
-            AgentRunContext issueContext = new AgentRunContext(
-                    "issues", taskContext, contextBuilder, batchMeta, english);
+        String traceId = MDC.get("traceId");
+        ExecutorService executor = Executors.newFixedThreadPool(concurrency, runnable -> {
+            Thread thread = new Thread(() -> {
+                if (traceId != null) {
+                    MDC.put("traceId", traceId);
+                }
+                try {
+                    runnable.run();
+                } finally {
+                    MDC.remove("traceId");
+                }
+            }, "ai-batch-" + task.getId());
+            thread.setDaemon(true);
+            return thread;
+        });
+        ExecutorCompletionService<BatchOutcome> completion = new ExecutorCompletionService<>(executor);
+        List<Future<BatchOutcome>> futures = new ArrayList<>(batchCount);
+        Object issueSaveLock = new Object();
 
-            try {
-                AgentResult result = agentExecutor.run(
-                        issueContext,
-                        promptBuilder.issuesSystem(english),
-                        promptBuilder.issuesUser(task, pr, report, batch, contextBuilder, config, english),
-                        AgentToolDefinitions.issueTools(),
-                        Set.of("submit_issues"));
-                AgentIssues issues = parse(result.getArguments(), AgentIssues.class);
-                if (issues == null) {
-                    throw new AgentException("submit_issues 参数为空");
-                }
-                ValidationResult validation = issueValidationService.save(task.getId(), issues.getIssues());
-                markFiles(batch, TaskFileConstant.STATUS_ANALYZED, null);
-                if (validation.dropped() > 0) {
-                    partial = true;
-                    errorCode = TaskErrorCodeConstant.MODEL_FORMAT_ERROR;
-                    errorMessage = "部分模型输出未通过校验";
-                }
-            } catch (ModelException ex) {
-                markFiles(batch, TaskFileConstant.STATUS_FAILED, "模型调用失败");
-                partial = true;
-                errorCode = ex.toTaskErrorCode();
-                errorMessage = "模型调用失败";
-                log.warn("任务 {} 批次模型调用失败：{}", task.getId(), ex.getKind());
-            } catch (AgentException ex) {
-                markFiles(batch, TaskFileConstant.STATUS_FAILED, "AI 输出未通过校验");
-                partial = true;
-                errorCode = TaskErrorCodeConstant.MODEL_FORMAT_ERROR;
-                errorMessage = "AI 输出未通过校验";
-                log.warn("任务 {} 批次 agent 输出无效：{}", task.getId(), ex.getMessage());
+        try {
+            for (int start = 0; start < analyzable.size(); start += batchSize) {
+                List<TaskFile> batch = List.copyOf(analyzable.subList(start,
+                        Math.min(start + batchSize, analyzable.size())));
+                futures.add(completion.submit(() -> analyzeBatch(
+                        task, pr, report, taskContext, contextBuilder, english,
+                        batch, config, issueSaveLock)));
             }
+
+            for (int completed = 1; completed <= batchCount; completed++) {
+                Future<BatchOutcome> future;
+                try {
+                    future = completion.take();
+                    BatchOutcome outcome = future.get();
+                    updateBatchProgress(task.getId(), completed, batchCount);
+                    if (outcome.partial()) {
+                        partial = true;
+                        if (errorCode == null) {
+                            errorCode = outcome.errorCode();
+                            errorMessage = outcome.errorMessage();
+                        }
+                    }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    futures.forEach(item -> item.cancel(true));
+                    throw new TaskCanceledException();
+                } catch (ExecutionException ex) {
+                    Throwable cause = ex.getCause();
+                    if (cause instanceof TaskCanceledException canceled) {
+                        futures.forEach(item -> item.cancel(true));
+                        throw canceled;
+                    }
+                    log.error("任务 {} 批次执行异常", task.getId(), cause);
+                    partial = true;
+                    if (errorCode == null) {
+                        errorCode = TaskErrorCodeConstant.INTERNAL_ERROR;
+                        errorMessage = "批次执行异常";
+                    }
+                }
+            }
+        } finally {
+            futures.forEach(item -> item.cancel(true));
+            executor.shutdownNow();
         }
 
         return partial
                 ? AnalysisPipelineResult.partial(errorCode, errorMessage)
                 : AnalysisPipelineResult.completed();
+    }
+
+    /**
+     * 单个文件批次：模型调用和工具循环在独立线程执行，校验入库串行化避免重复问题竞争。
+     */
+    private BatchOutcome analyzeBatch(AnalysisTask task,
+                                      PullRequest pr,
+                                      AnalysisReport report,
+                                      TaskContext taskContext,
+                                      ContextBuilder contextBuilder,
+                                      boolean english,
+                                      List<TaskFile> batch,
+                                      AnalysisConfigVO config,
+                                      Object issueSaveLock) {
+        try {
+            checkCanceled(task.getId());
+            List<Map<String, Object>> batchMeta = batch.stream().map(this::fileMeta).toList();
+            AgentRunContext issueContext = new AgentRunContext(
+                    "issues", taskContext, contextBuilder, batchMeta, english);
+
+            AgentResult result = agentExecutor.run(
+                    issueContext,
+                    promptBuilder.issuesSystem(english),
+                    promptBuilder.issuesUser(task, pr, report, batch, contextBuilder, config, english),
+                    AgentToolDefinitions.issueTools(),
+                    Set.of("submit_issues"));
+            checkCanceled(task.getId());
+            AgentIssues issues = parse(result.getArguments(), AgentIssues.class);
+            if (issues == null) {
+                throw new AgentException("submit_issues 参数为空");
+            }
+
+            ValidationResult validation;
+            synchronized (issueSaveLock) {
+                validation = issueValidationService.save(task.getId(), issues.getIssues());
+            }
+            markFiles(batch, TaskFileConstant.STATUS_ANALYZED, null);
+            if (validation.dropped() > 0) {
+                log.warn("任务 {} 批次有 {} 条问题未通过校验", task.getId(), validation.dropped());
+                return BatchOutcome.dropped();
+            }
+            log.info("任务 {} 批次完成：files={}, inserted={}", task.getId(),
+                    batch.size(), validation.inserted());
+            return BatchOutcome.completed();
+        } catch (TaskCanceledException ex) {
+            throw ex;
+        } catch (ModelException ex) {
+            markFiles(batch, TaskFileConstant.STATUS_FAILED, "模型调用失败");
+            log.warn("任务 {} 批次模型调用失败：{}", task.getId(), ex.getKind());
+            return BatchOutcome.failed(ex.toTaskErrorCode(), "模型调用失败");
+        } catch (AgentException ex) {
+            markFiles(batch, TaskFileConstant.STATUS_FAILED, "AI 输出未通过校验");
+            log.warn("任务 {} 批次 agent 输出无效：{}", task.getId(), ex.getMessage());
+            return BatchOutcome.failed(TaskErrorCodeConstant.MODEL_FORMAT_ERROR, "AI 输出未通过校验");
+        } catch (AnalysisPipelineException ex) {
+            markFiles(batch, TaskFileConstant.STATUS_FAILED, "模型输出格式错误");
+            log.warn("任务 {} 批次模型输出格式错误：{}", task.getId(), ex.getMessage());
+            return BatchOutcome.failed(ex.getErrorCode(), "模型输出格式错误");
+        } catch (Exception ex) {
+            markFiles(batch, TaskFileConstant.STATUS_FAILED, "批次执行异常");
+            log.error("任务 {} 批次执行异常", task.getId(), ex);
+            return BatchOutcome.failed(TaskErrorCodeConstant.INTERNAL_ERROR, "批次执行异常");
+        }
+    }
+
+    private void updateBatchProgress(Long taskId, int completed, int total) {
+        int progress = Math.min(89, 50 + (int) Math.round(40.0 * completed / total));
+        int updated = analysisTaskMapper.update(null, new LambdaUpdateWrapper<AnalysisTask>()
+                .eq(AnalysisTask::getId, taskId)
+                .eq(AnalysisTask::getStatus, TaskStatusConstant.RUNNING)
+                .set(AnalysisTask::getProgress, progress)
+                .set(AnalysisTask::getUpdateTime, LocalDateTime.now()));
+        if (updated == 0) {
+            throw new TaskCanceledException();
+        }
+    }
+
+    private record BatchOutcome(boolean partial, Integer errorCode, String errorMessage) {
+
+        static BatchOutcome completed() {
+            return new BatchOutcome(false, null, null);
+        }
+
+        static BatchOutcome dropped() {
+            return new BatchOutcome(true, TaskErrorCodeConstant.MODEL_FORMAT_ERROR,
+                    "部分模型输出未通过校验");
+        }
+
+        static BatchOutcome failed(Integer errorCode, String errorMessage) {
+            return new BatchOutcome(true, errorCode, errorMessage);
+        }
     }
 
     private void saveSummary(Long taskId, AgentSummary summary, List<TaskFile> files) {

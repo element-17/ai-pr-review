@@ -19,6 +19,9 @@ public class AiProperties {
     /** 每批文件数，实际使用时会限制在 3-5 */
     private int batchSize = 4;
 
+    /** 批内并发数，实际使用时会限制在 1-4；1 表示串行 */
+    private int batchConcurrency = 2;
+
     /** 每次 agent 调用最多模型轮次 */
     private int maxTurns = 6;
 

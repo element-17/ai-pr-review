@@ -32,6 +32,8 @@ pr:
     # deepseek：真实模型；fake：无 Key 的本地联调/自动化测试
     provider: deepseek
     batch-size: 4
+    # 大 PR 的批内并发数，1-4；1 表示串行
+    batch-concurrency: 2
     max-turns: 6
     max-tool-calls: 8
     deepseek:
