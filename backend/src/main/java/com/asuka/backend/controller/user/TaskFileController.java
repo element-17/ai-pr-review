@@ -5,6 +5,7 @@ import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.TaskFileQueryDTO;
 import com.asuka.backend.service.TaskFileService;
 import com.asuka.backend.vo.TaskFileDetailVO;
+import com.asuka.backend.vo.TaskFileDiffVO;
 import com.asuka.backend.vo.TaskFileVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,5 +48,15 @@ public class TaskFileController {
             @Parameter(description = "文件 ID") @PathVariable @Min(value = 1, message = "文件 ID 非法")
             Long fileId) {
         return Result.success(taskFileService.getDetail(taskId, fileId));
+    }
+
+    @Operation(summary = "结构化 Diff", description = "解析 patch 的新旧行号，并返回行上的问题标记")
+    @GetMapping("/{fileId}/diff")
+    public Result<TaskFileDiffVO> diff(
+            @Parameter(description = "任务 ID") @PathVariable @Min(value = 1, message = "任务 ID 非法")
+            Long taskId,
+            @Parameter(description = "文件 ID") @PathVariable @Min(value = 1, message = "文件 ID 非法")
+            Long fileId) {
+        return Result.success(taskFileService.getDiff(taskId, fileId));
     }
 }

@@ -87,6 +87,7 @@ Authorization: Bearer <accessToken>
 | GET | `/api/tasks/{taskId}/progress` | 轻量进度轮询 |
 | GET | `/api/tasks/{taskId}/files` | 文件清单，支持状态、变更类型、重点文件和路径搜索 |
 | GET | `/api/tasks/{taskId}/files/{fileId}` | 文件 patch、GitHub 链接和关联问题 |
+| GET | `/api/tasks/{taskId}/files/{fileId}/diff` | 结构化 Diff 行、新旧行号和问题标记 |
 | GET | `/api/tasks/{taskId}/issues` | 问题组合筛选、排序、关键词搜索和任务级统计 |
 | GET | `/api/tasks/{taskId}/issues/{issueId}` | 问题详情、证据和 GitHub 行号链接 |
 | PATCH | `/api/tasks/{taskId}/issues/{issueId}` | 更新处理状态、理由或建议，记录最后操作人和时间 |

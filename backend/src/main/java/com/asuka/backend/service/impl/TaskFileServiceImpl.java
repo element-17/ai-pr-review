@@ -13,14 +13,20 @@ import com.asuka.backend.mapper.ReviewIssueMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskFileService;
+import com.asuka.backend.utils.PatchDiffParser;
+import com.asuka.backend.vo.DiffRowVO;
+import com.asuka.backend.vo.IssueBriefVO;
 import com.asuka.backend.vo.TaskFileDetailVO;
+import com.asuka.backend.vo.TaskFileDiffVO;
 import com.asuka.backend.vo.TaskFileVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -87,6 +93,55 @@ public class TaskFileServiceImpl implements TaskFileService {
         vo.setGithubUrl(buildGithubUrl(task, pr, file));
         vo.setIssues(reviewIssueMapper.selectBriefByFile(taskId, fileId));
         return vo;
+    }
+
+    @Override
+    public TaskFileDiffVO getDiff(Long taskId, Long fileId) {
+        TaskFileDetailVO detail = getDetail(taskId, fileId);
+        TaskFileDiffVO vo = new TaskFileDiffVO();
+        BeanUtils.copyProperties(detail, vo);
+
+        PatchDiffParser.Parsed parsed = PatchDiffParser.parse(detail.getPatch());
+        List<IssueBriefVO> issues = detail.getIssues() == null ? List.of() : detail.getIssues();
+        List<DiffRowVO> rows = new ArrayList<>(parsed.rows().size());
+        for (PatchDiffParser.Row row : parsed.rows()) {
+            DiffRowVO rowVO = new DiffRowVO();
+            rowVO.setType(row.type());
+            rowVO.setOldLine(row.oldLine());
+            rowVO.setNewLine(row.newLine());
+            rowVO.setContent(row.content());
+            List<Long> issueIds = new ArrayList<>();
+            Integer highestSeverity = null;
+            if (row.newLine() != null) {
+                for (IssueBriefVO issue : issues) {
+                    if (issue.getStartLine() == null) {
+                        continue;
+                    }
+                    int start = issue.getStartLine();
+                    int end = issue.getEndLine() == null ? start : issue.getEndLine();
+                    if (row.newLine() >= start && row.newLine() <= end) {
+                        issueIds.add(issue.getIssueId());
+                        highestSeverity = highest(highestSeverity, issue.getSeverity());
+                    }
+                }
+            }
+            rowVO.setIssueIds(issueIds);
+            rowVO.setHighestSeverity(highestSeverity);
+            rows.add(rowVO);
+        }
+
+        vo.setPatchAvailable(StringUtils.hasText(detail.getPatch()));
+        vo.setRows(rows);
+        vo.setAddedLines(parsed.addedLines());
+        vo.setHunkLines(parsed.hunkLines());
+        return vo;
+    }
+
+    private Integer highest(Integer current, Integer next) {
+        if (next == null) {
+            return current;
+        }
+        return current == null ? next : Math.max(current, next);
     }
 
     /**
