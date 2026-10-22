@@ -1,6 +1,7 @@
 package com.asuka.backend.integration.ai;
 
-import com.asuka.backend.config.AiProperties;
+import com.asuka.backend.exception.ModelException;
+import com.asuka.backend.properties.AiProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

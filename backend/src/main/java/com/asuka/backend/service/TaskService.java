@@ -1,6 +1,6 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.result.PageResult;
 import com.asuka.backend.dto.TaskQueryDTO;
 import com.asuka.backend.vo.TaskDetailVO;
 import com.asuka.backend.vo.TaskListItemVO;

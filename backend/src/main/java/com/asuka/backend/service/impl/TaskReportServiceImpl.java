@@ -1,10 +1,10 @@
 package com.asuka.backend.service.impl;
 
-import com.asuka.backend.common.constant.ReportLanguageConstant;
-import com.asuka.backend.common.constant.ReviewIssueConstant;
-import com.asuka.backend.common.constant.TaskFileConstant;
-import com.asuka.backend.common.constant.TaskStatusConstant;
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.constant.ReportLanguageConstant;
+import com.asuka.backend.constant.ReviewIssueConstant;
+import com.asuka.backend.constant.TaskFileConstant;
+import com.asuka.backend.constant.TaskStatusConstant;
+import com.asuka.backend.exception.BusinessException;
 import com.asuka.backend.dto.IssueExportRow;
 import com.asuka.backend.entity.AnalysisReport;
 import com.asuka.backend.entity.AnalysisTask;
@@ -14,7 +14,7 @@ import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.ReviewIssueMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.service.AnalysisConfigParser;
+import com.asuka.backend.analysis.AnalysisConfigParser;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskReportService;
 import com.asuka.backend.service.TaskStatsService;

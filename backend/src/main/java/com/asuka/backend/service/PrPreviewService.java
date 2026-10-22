@@ -1,7 +1,7 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.config.GitHubProperties;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.properties.GitHubProperties;
 import com.asuka.backend.entity.AnalysisTask;
 import com.asuka.backend.entity.PullRequest;
 import com.asuka.backend.integration.github.GitHubClient;
@@ -50,7 +50,7 @@ public class PrPreviewService {
         GitHubPrResponse response;
         try {
             response = loadPullRequest(ref);
-        } catch (com.asuka.backend.integration.github.GitHubApiException ex) {
+        } catch (com.asuka.backend.exception.GitHubApiException ex) {
             throw GitHubErrorMapper.toBusinessException(ex);
         }
 

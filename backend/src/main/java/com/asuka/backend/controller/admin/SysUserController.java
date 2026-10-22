@@ -1,9 +1,9 @@
 package com.asuka.backend.controller.admin;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.asuka.backend.common.constant.AuthConstant;
-import com.asuka.backend.common.result.PageResult;
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.constant.AuthConstant;
+import com.asuka.backend.result.PageResult;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.UserCreateDTO;
 import com.asuka.backend.dto.UserQueryDTO;
 import com.asuka.backend.dto.UserUpdateDTO;

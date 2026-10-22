@@ -1,6 +1,7 @@
 package com.asuka.backend.integration.github;
 
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.exception.GitHubApiException;
 
 /**
  * GitHub 异常到平台错误的统一映射。

@@ -1,6 +1,6 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.exception.BusinessException;
 import com.asuka.backend.entity.PullRequest;
 import com.asuka.backend.integration.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.PullRequestMapper;

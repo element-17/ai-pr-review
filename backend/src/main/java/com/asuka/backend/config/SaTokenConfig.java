@@ -2,7 +2,7 @@ package com.asuka.backend.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
-import com.asuka.backend.common.interceptor.UserContextInterceptor;
+import com.asuka.backend.interceptor.UserContextInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

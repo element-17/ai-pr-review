@@ -1,9 +1,9 @@
 package com.asuka.backend.service.impl;
 
-import com.asuka.backend.common.constant.ReviewIssueConstant;
-import com.asuka.backend.common.constant.TaskFileConstant;
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.common.util.GitHubUrlUtil;
+import com.asuka.backend.constant.ReviewIssueConstant;
+import com.asuka.backend.constant.TaskFileConstant;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.utils.GitHubUrlUtil;
 import com.asuka.backend.dto.GeneratedIssueDTO;
 import com.asuka.backend.dto.IssueQueryParam;
 import com.asuka.backend.dto.ReviewIssueQueryDTO;

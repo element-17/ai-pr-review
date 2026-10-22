@@ -1,8 +1,8 @@
 package com.asuka.backend.controller.user;
 
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.asuka.backend.common.result.PageResult;
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.result.PageResult;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.TaskCreateDTO;
 import com.asuka.backend.dto.TaskQueryDTO;
 import com.asuka.backend.service.TaskCompareService;

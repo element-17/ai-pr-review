@@ -1,7 +1,7 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.common.result.PageResult;
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.result.PageResult;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.TaskFileQueryDTO;
 import com.asuka.backend.service.TaskFileService;
 import com.asuka.backend.vo.TaskFileDetailVO;

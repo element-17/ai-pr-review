@@ -1,13 +1,13 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.constant.ReportLanguageConstant;
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.config.AiProperties;
-import com.asuka.backend.config.PrAppProperties;
+import com.asuka.backend.constant.ReportLanguageConstant;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.properties.AiProperties;
+import com.asuka.backend.properties.PrAppProperties;
 import com.asuka.backend.dto.TaskCreateDTO;
 import com.asuka.backend.entity.AnalysisTask;
 import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.integration.github.GitHubApiException;
+import com.asuka.backend.exception.GitHubApiException;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.GitHubErrorMapper;
 import com.asuka.backend.integration.github.GitHubPrUrlParser;

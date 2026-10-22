@@ -1,6 +1,6 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.constant.ReviewIssueConstant;
+import com.asuka.backend.constant.ReviewIssueConstant;
 import com.asuka.backend.dto.StatusCountRow;
 import com.asuka.backend.mapper.ReviewIssueMapper;
 import com.asuka.backend.mapper.TaskFileMapper;

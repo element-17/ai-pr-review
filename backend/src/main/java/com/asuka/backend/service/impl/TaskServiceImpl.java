@@ -1,9 +1,9 @@
 package com.asuka.backend.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.asuka.backend.common.constant.TaskStatusConstant;
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.constant.TaskStatusConstant;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.result.PageResult;
 import com.asuka.backend.dto.TaskListRow;
 import com.asuka.backend.dto.TaskQueryDTO;
 import com.asuka.backend.entity.AnalysisReport;
@@ -12,7 +12,7 @@ import com.asuka.backend.entity.PullRequest;
 import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.service.AnalysisConfigParser;
+import com.asuka.backend.analysis.AnalysisConfigParser;
 import com.asuka.backend.service.PullRequestRefreshService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskService;

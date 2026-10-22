@@ -1,7 +1,7 @@
 package com.asuka.backend.service.impl;
 
-import com.asuka.backend.common.constant.ReportLanguageConstant;
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.constant.ReportLanguageConstant;
+import com.asuka.backend.exception.BusinessException;
 import com.asuka.backend.dto.UserSettingUpdateDTO;
 import com.asuka.backend.entity.UserSetting;
 import com.asuka.backend.mapper.UserSettingMapper;

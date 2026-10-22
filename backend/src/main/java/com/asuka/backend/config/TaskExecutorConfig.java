@@ -1,5 +1,6 @@
 package com.asuka.backend.config;
 
+import com.asuka.backend.properties.TaskProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
