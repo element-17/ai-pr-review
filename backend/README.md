@@ -133,6 +133,12 @@ Redis key：
 | `auth:refresh:user:{userId}` | refresh-token 集合 | 7 天 |
 | `auth:login:fail:{username}` | 连续失败次数 | 15 分钟 |
 
+## 质量验证
+
+- 20 个测试用例、真实模型指标、误报/漏报分析见 [../docs/测试用例与指标.md](../docs/测试用例与指标.md)。
+- 真实模型验证：`deepseek/deepseek-v4.1-flash` 分析 `octocat/Hello-World#11596`，任务 status=3、20.8 秒、3 次调用、4504 tokens。
+- 大 Diff、模型超时、启动恢复、非法输出部分完成等异常路径均已实际执行并记录。
+
 ## 代码分层
 
 ```text
