@@ -16,3 +16,14 @@ pr:
     port: 6379
     password: your_redis_password
     database: 0
+  github:
+    # 只用于服务端访问 GitHub，不要提交真实 Token
+    token: your_github_token
+    api-base-url: https://api.github.com
+    connect-timeout-ms: 5000
+    read-timeout-ms: 30000
+    user-agent: ai-pr-review
+    preview-cache-seconds: 60
+  app:
+    frontend-base-url: http://localhost:5173
+    guest-task-ttl-days: 7

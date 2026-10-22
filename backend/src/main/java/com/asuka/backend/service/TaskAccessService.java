@@ -89,6 +89,33 @@ public class TaskAccessService {
     }
 
     /**
+     * 可选登录：预览和创建任务允许游客，但带了无效 Authorization 时必须返回 401。
+     *
+     * @return 登录用户 ID；无 Authorization 时返回 null
+     */
+    public Long requireOptionalLogin() {
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+            return null;
+        }
+        HttpServletRequest request = attributes.getRequest();
+        String authorization = request.getHeader("Authorization");
+        try {
+            if (StpUtil.isLogin()) {
+                return StpUtil.getLoginIdAsLong();
+            }
+        } catch (NotLoginException ex) {
+            if (StringUtils.hasText(authorization)) {
+                throw new BusinessException(401, "登录状态已失效，请重新登录");
+            }
+            return null;
+        }
+        if (StringUtils.hasText(authorization)) {
+            throw new BusinessException(401, "登录状态已失效，请重新登录");
+        }
+        return null;
+    }
+
+    /**
      * 从请求头或查询参数读取游客令牌。
      * 查询参数只用于导出这类直接打开链接的场景。
      */
