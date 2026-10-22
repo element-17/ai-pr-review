@@ -174,7 +174,8 @@ core.agent                 -> agent 工具循环、工具定义/注册和提交�
 core.integration.ai/github -> 模型客户端、GitHub 客户端及其 DTO
 
 controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
-service / service.impl     -> 业务服务与实现（任务、设置、导出、问题反馈等）
+service                    -> 业务接口（任务、设置、导出、问题反馈等）
+service.impl               -> 业务接口实现（XxxServiceImpl）
 task                       -> TaskWorker、TaskDispatcher、TaskRecoveryRunner
 mapper                     -> BaseMapper 单表 CRUD；XML 复杂查询
 config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、MVC
