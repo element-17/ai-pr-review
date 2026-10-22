@@ -1,17 +1,17 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.exception.BusinessException;
-import com.asuka.backend.properties.GitHubProperties;
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
+import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.common.properties.GitHubProperties;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.GitHubErrorMapper;
 import com.asuka.backend.integration.github.GitHubPrUrlParser;
 import com.asuka.backend.integration.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
-import com.asuka.backend.vo.PrPreviewVO;
-import com.asuka.backend.vo.PrVO;
-import com.asuka.backend.vo.ReusableTaskVO;
+import com.asuka.backend.pojo.vo.PrPreviewVO;
+import com.asuka.backend.pojo.vo.PrVO;
+import com.asuka.backend.pojo.vo.ReusableTaskVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class PrPreviewService {
         GitHubPrResponse response;
         try {
             response = loadPullRequest(ref);
-        } catch (com.asuka.backend.exception.GitHubApiException ex) {
+        } catch (com.asuka.backend.common.exception.GitHubApiException ex) {
             throw GitHubErrorMapper.toBusinessException(ex);
         }
 

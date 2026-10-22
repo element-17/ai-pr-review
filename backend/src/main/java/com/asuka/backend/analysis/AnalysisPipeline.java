@@ -1,8 +1,8 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 
 /**
  * 分析 pipeline 抽象。

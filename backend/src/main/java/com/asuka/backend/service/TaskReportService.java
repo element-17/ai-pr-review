@@ -1,7 +1,7 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.vo.MarkdownExportVO;
-import com.asuka.backend.vo.ReportVO;
+import com.asuka.backend.pojo.vo.MarkdownExportVO;
+import com.asuka.backend.pojo.vo.ReportVO;
 
 /**
  * 分析报告服务。

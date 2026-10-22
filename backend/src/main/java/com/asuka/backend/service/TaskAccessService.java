@@ -2,8 +2,8 @@ package com.asuka.backend.service;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
-import com.asuka.backend.exception.BusinessException;
-import com.asuka.backend.entity.AnalysisTask;
+import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

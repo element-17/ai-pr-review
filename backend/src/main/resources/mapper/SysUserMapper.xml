@@ -7,7 +7,7 @@
         登录查询必须显式查询 password。
         这里是原生 SQL，MP 的逻辑删除不会自动追加，所以手动写 deleted = 0。
     -->
-    <select id="selectByUsernameForLogin" resultType="com.asuka.backend.entity.SysUser">
+    <select id="selectByUsernameForLogin" resultType="com.asuka.backend.pojo.entity.SysUser">
         SELECT id,
                username,
                password,
@@ -34,7 +34,7 @@
         3. 返回列不包含 password；
         4. 分页由 MyBatis-Plus PaginationInnerInterceptor 自动追加 LIMIT。
     -->
-    <select id="selectUserPage" resultType="com.asuka.backend.entity.SysUser">
+    <select id="selectUserPage" resultType="com.asuka.backend.pojo.entity.SysUser">
         SELECT id,
                username,
                nickname,
@@ -67,7 +67,7 @@
     </select>
 
     <!-- 单表聚合统计，使用别名 total 与 RoleCountVO.total 对应 -->
-    <select id="countByRole" resultType="com.asuka.backend.vo.RoleCountVO">
+    <select id="countByRole" resultType="com.asuka.backend.pojo.vo.RoleCountVO">
         SELECT role,
                COUNT(*) AS total
         FROM sys_user

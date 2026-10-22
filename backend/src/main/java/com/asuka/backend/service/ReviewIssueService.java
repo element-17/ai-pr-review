@@ -1,10 +1,10 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.dto.GeneratedIssueDTO;
-import com.asuka.backend.dto.ReviewIssueQueryDTO;
-import com.asuka.backend.dto.ReviewIssueUpdateDTO;
-import com.asuka.backend.vo.IssueDetailVO;
-import com.asuka.backend.vo.IssueListVO;
+import com.asuka.backend.pojo.dto.GeneratedIssueDTO;
+import com.asuka.backend.pojo.dto.ReviewIssueQueryDTO;
+import com.asuka.backend.pojo.dto.ReviewIssueUpdateDTO;
+import com.asuka.backend.pojo.vo.IssueDetailVO;
+import com.asuka.backend.pojo.vo.IssueListVO;
 
 import java.util.List;
 

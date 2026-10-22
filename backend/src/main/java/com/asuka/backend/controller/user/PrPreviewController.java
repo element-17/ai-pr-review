@@ -1,10 +1,10 @@
 package com.asuka.backend.controller.user;
 
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.asuka.backend.result.Result;
-import com.asuka.backend.dto.PrPreviewDTO;
+import com.asuka.backend.common.result.Result;
+import com.asuka.backend.pojo.dto.PrPreviewDTO;
 import com.asuka.backend.service.PrPreviewService;
-import com.asuka.backend.vo.PrPreviewVO;
+import com.asuka.backend.pojo.vo.PrPreviewVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

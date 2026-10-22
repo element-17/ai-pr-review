@@ -1,8 +1,8 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.dto.UserSettingUpdateDTO;
-import com.asuka.backend.vo.AnalysisConfigVO;
-import com.asuka.backend.vo.UserSettingVO;
+import com.asuka.backend.pojo.dto.UserSettingUpdateDTO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.UserSettingVO;
 
 /**
  * 用户设置服务。

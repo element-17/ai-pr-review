@@ -1,6 +1,6 @@
 package com.asuka.backend.integration.ai;
 
-import com.asuka.backend.properties.AiProperties;
+import com.asuka.backend.common.properties.AiProperties;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 

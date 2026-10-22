@@ -30,7 +30,7 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: com.asuka.backend.entity
+  type-aliases-package: com.asuka.backend.pojo.entity
   configuration:
     # 数据库下划线字段自动映射为 Java 驼峰属性
     map-underscore-to-camel-case: true

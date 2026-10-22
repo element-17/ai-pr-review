@@ -1,11 +1,11 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.result.Result;
-import com.asuka.backend.dto.ReviewIssueQueryDTO;
-import com.asuka.backend.dto.ReviewIssueUpdateDTO;
+import com.asuka.backend.common.result.Result;
+import com.asuka.backend.pojo.dto.ReviewIssueQueryDTO;
+import com.asuka.backend.pojo.dto.ReviewIssueUpdateDTO;
 import com.asuka.backend.service.ReviewIssueService;
-import com.asuka.backend.vo.IssueDetailVO;
-import com.asuka.backend.vo.IssueListVO;
+import com.asuka.backend.pojo.vo.IssueDetailVO;
+import com.asuka.backend.pojo.vo.IssueListVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

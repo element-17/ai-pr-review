@@ -1,11 +1,11 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.constant.TaskStatusConstant;
-import com.asuka.backend.exception.BusinessException;
-import com.asuka.backend.entity.AnalysisTask;
+import com.asuka.backend.common.constant.TaskStatusConstant;
+import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
-import com.asuka.backend.vo.TaskActionVO;
-import com.asuka.backend.vo.TaskDeleteVO;
+import com.asuka.backend.pojo.vo.TaskActionVO;
+import com.asuka.backend.pojo.vo.TaskDeleteVO;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,10 +1,10 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.result.PageResult;
-import com.asuka.backend.dto.TaskQueryDTO;
-import com.asuka.backend.vo.TaskDetailVO;
-import com.asuka.backend.vo.TaskListItemVO;
-import com.asuka.backend.vo.TaskProgressVO;
+import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.pojo.dto.TaskQueryDTO;
+import com.asuka.backend.pojo.vo.TaskDetailVO;
+import com.asuka.backend.pojo.vo.TaskListItemVO;
+import com.asuka.backend.pojo.vo.TaskProgressVO;
 
 /**
  * 分析任务查询服务。

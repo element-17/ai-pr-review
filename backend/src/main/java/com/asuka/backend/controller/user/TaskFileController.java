@@ -1,12 +1,12 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.result.PageResult;
-import com.asuka.backend.result.Result;
-import com.asuka.backend.dto.TaskFileQueryDTO;
+import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.common.result.Result;
+import com.asuka.backend.pojo.dto.TaskFileQueryDTO;
 import com.asuka.backend.service.TaskFileService;
-import com.asuka.backend.vo.TaskFileDetailVO;
-import com.asuka.backend.vo.TaskFileDiffVO;
-import com.asuka.backend.vo.TaskFileVO;
+import com.asuka.backend.pojo.vo.TaskFileDetailVO;
+import com.asuka.backend.pojo.vo.TaskFileDiffVO;
+import com.asuka.backend.pojo.vo.TaskFileVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
