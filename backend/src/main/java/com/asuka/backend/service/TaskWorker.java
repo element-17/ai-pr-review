@@ -6,8 +6,10 @@ import com.asuka.backend.common.constant.TaskStatusConstant;
 import com.asuka.backend.entity.AnalysisTask;
 import com.asuka.backend.entity.PullRequest;
 import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.integration.ai.ModelException;
 import com.asuka.backend.integration.github.GitHubApiException;
 import com.asuka.backend.integration.github.GitHubErrorMapper;
+import com.asuka.backend.service.ai.AnalysisPipelineException;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
@@ -98,6 +100,11 @@ public class TaskWorker {
                     finalStatus, System.currentTimeMillis() - started);
         } catch (TaskCanceledException ex) {
             log.info("任务 {} 已取消，worker 停止", taskId);
+        } catch (AnalysisPipelineException ex) {
+            fail(taskId, ex.getErrorCode(), ex.getMessage());
+        } catch (ModelException ex) {
+            log.warn("任务 {} 模型调用失败：{}", taskId, ex.getMessage());
+            fail(taskId, ex.toTaskErrorCode(), "模型调用失败");
         } catch (GitHubApiException ex) {
             fail(taskId, GitHubErrorMapper.toTaskErrorCode(ex), "GitHub 请求失败");
         } catch (Exception ex) {

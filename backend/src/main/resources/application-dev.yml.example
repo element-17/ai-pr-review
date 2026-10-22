@@ -28,6 +28,21 @@ pr:
     worker-count: 2
     queue-capacity: 100
     dispatch-interval-ms: 5000
+  ai:
+    # deepseek：真实模型；fake：无 Key 的本地联调/自动化测试
+    provider: deepseek
+    batch-size: 4
+    max-turns: 6
+    max-tool-calls: 8
+    deepseek:
+      # 推荐用环境变量，不要把真实 Key 写进文件
+      api-key: ${DEEPSEEK_API_KEY:}
+      base-url: https://api.commandcode.ai/provider/v1
+      model: deepseek/deepseek-v4.1-flash
+      connect-timeout-ms: 10000
+      read-timeout-ms: 180000
+      max-tokens: 8192
+      temperature: 0.1
   app:
     frontend-base-url: http://localhost:5173
     guest-task-ttl-days: 7

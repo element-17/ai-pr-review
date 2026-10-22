@@ -2,6 +2,7 @@ package com.asuka.backend.service;
 
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.config.AiProperties;
 import com.asuka.backend.config.PrAppProperties;
 import com.asuka.backend.dto.TaskCreateDTO;
 import com.asuka.backend.entity.AnalysisTask;
@@ -45,7 +46,6 @@ public class TaskCreateService {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final String DEFAULT_MODEL = "deepseek-flash";
 
     private final GitHubClient gitHubClient;
     private final PullRequestService pullRequestService;
@@ -55,6 +55,7 @@ public class TaskCreateService {
     private final RateLimitService rateLimitService;
     private final IdempotencyService idempotencyService;
     private final PrAppProperties prAppProperties;
+    private final AiProperties aiProperties;
 
     @Transactional(rollbackFor = Exception.class)
     public TaskCreateVO create(TaskCreateDTO dto, String idempotencyKey) {
@@ -106,7 +107,7 @@ public class TaskCreateService {
         task.setStatus(1);
         task.setStage(1);
         task.setProgress(0);
-        task.setModelName(DEFAULT_MODEL);
+        task.setModelName(aiProperties.getDeepseek().getModel());
         task.setAnalysisConfig(toJson(config));
         task.setIsDeleted(0);
         if (userId == null) {
@@ -149,7 +150,7 @@ public class TaskCreateService {
         task.setStage(1);
         task.setProgress(0);
         task.setModelName(StringUtils.hasText(original.getModelName())
-                ? original.getModelName() : DEFAULT_MODEL);
+                ? original.getModelName() : aiProperties.getDeepseek().getModel());
         task.setAnalysisConfig(original.getAnalysisConfig());
         task.setRetryOfTaskId(original.getId());
         task.setIsDeleted(0);

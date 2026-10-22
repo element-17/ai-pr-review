@@ -2,9 +2,11 @@ package com.asuka.backend.integration.github;
 
 import com.asuka.backend.config.GitHubProperties;
 import com.asuka.backend.integration.github.dto.GitHubCommitResponse;
+import com.asuka.backend.integration.github.dto.GitHubContentItem;
 import com.asuka.backend.integration.github.dto.GitHubFileResponse;
 import com.asuka.backend.integration.github.dto.GitHubPrResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -134,6 +136,32 @@ public class GitHubClient {
             throw new GitHubApiException(GitHubApiException.Kind.UNKNOWN, 0, "文件是二进制内容");
         }
         return content;
+    }
+
+    /**
+     * 列出目录内容，用于查找测试文件和同目录调用方。
+     */
+    public List<GitHubContentItem> listDirectory(String owner, String repo, String path, String ref) {
+        String suffix = StringUtils.hasText(path) && !".".equals(path)
+                ? "/" + encodePath(path) : "";
+        String json = getForString(
+                "/repos/{owner}/{repo}/contents" + suffix + "?ref={ref}",
+                "application/vnd.github+json", owner, repo, ref);
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(json);
+            List<GitHubContentItem> items = new ArrayList<>();
+            if (root.isArray()) {
+                for (JsonNode node : root) {
+                    items.add(OBJECT_MAPPER.treeToValue(node, GitHubContentItem.class));
+                }
+            } else if (root.isObject()) {
+                items.add(OBJECT_MAPPER.treeToValue(root, GitHubContentItem.class));
+            }
+            return items;
+        } catch (Exception ex) {
+            throw new GitHubApiException(GitHubApiException.Kind.UNKNOWN, 0,
+                    "GitHub 目录响应解析失败", ex);
+        }
     }
 
     private String getForString(String path, String accept, Object... uriVars) {
