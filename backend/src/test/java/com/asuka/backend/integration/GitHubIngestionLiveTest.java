@@ -1,8 +1,8 @@
 package com.asuka.backend.integration;
 
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
@@ -10,7 +10,7 @@ import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.service.PullRequestService;
 import com.asuka.backend.service.TaskFileIngestionService;
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;

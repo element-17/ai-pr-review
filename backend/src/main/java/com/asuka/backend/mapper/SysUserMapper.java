@@ -1,8 +1,8 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.dto.UserQueryDTO;
-import com.asuka.backend.entity.SysUser;
-import com.asuka.backend.vo.RoleCountVO;
+import com.asuka.backend.pojo.dto.UserQueryDTO;
+import com.asuka.backend.pojo.entity.SysUser;
+import com.asuka.backend.pojo.vo.RoleCountVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

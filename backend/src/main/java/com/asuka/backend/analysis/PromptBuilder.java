@@ -1,11 +1,11 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.entity.AnalysisReport;
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.pojo.entity.AnalysisReport;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.integration.github.dto.GitHubCommitResponse;
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

@@ -10,7 +10,7 @@
         3. 过期判断比较任务 head_sha 与 PR 当前 head_sha；
         4. 大文本和统计字段不在列表中返回，避免列表页变慢。
     -->
-    <select id="selectTaskPage" resultType="com.asuka.backend.dto.TaskListRow">
+    <select id="selectTaskPage" resultType="com.asuka.backend.pojo.dto.TaskListRow">
         SELECT t.id                    AS task_id,
                p.repo_full_name        AS repo_full_name,
                p.pr_number             AS pr_number,

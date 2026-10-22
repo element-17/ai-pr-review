@@ -1,12 +1,12 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.result.PageResult;
-import com.asuka.backend.dto.UserCreateDTO;
-import com.asuka.backend.dto.UserQueryDTO;
-import com.asuka.backend.dto.UserUpdateDTO;
-import com.asuka.backend.entity.SysUser;
-import com.asuka.backend.vo.RoleCountVO;
-import com.asuka.backend.vo.UserVO;
+import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.pojo.dto.UserCreateDTO;
+import com.asuka.backend.pojo.dto.UserQueryDTO;
+import com.asuka.backend.pojo.dto.UserUpdateDTO;
+import com.asuka.backend.pojo.entity.SysUser;
+import com.asuka.backend.pojo.vo.RoleCountVO;
+import com.asuka.backend.pojo.vo.UserVO;
 import com.baomidou.mybatisplus.spring.service.IService;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.pojo.entity.TaskFile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.entity.UserSetting;
+import com.asuka.backend.pojo.entity.UserSetting;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

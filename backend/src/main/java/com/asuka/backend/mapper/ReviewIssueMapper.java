@@ -1,11 +1,11 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.dto.IssueExportRow;
-import com.asuka.backend.dto.IssueQueryParam;
-import com.asuka.backend.dto.StatusCountRow;
-import com.asuka.backend.entity.ReviewIssue;
-import com.asuka.backend.vo.IssueBriefVO;
-import com.asuka.backend.vo.IssueVO;
+import com.asuka.backend.pojo.dto.IssueExportRow;
+import com.asuka.backend.pojo.dto.IssueQueryParam;
+import com.asuka.backend.pojo.dto.StatusCountRow;
+import com.asuka.backend.pojo.entity.ReviewIssue;
+import com.asuka.backend.pojo.vo.IssueBriefVO;
+import com.asuka.backend.pojo.vo.IssueVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

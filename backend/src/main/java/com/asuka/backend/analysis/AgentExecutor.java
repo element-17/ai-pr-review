@@ -1,9 +1,9 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.exception.AgentException;
-import com.asuka.backend.properties.AiProperties;
+import com.asuka.backend.common.exception.AgentException;
+import com.asuka.backend.common.properties.AiProperties;
 import com.asuka.backend.integration.ai.ModelClient;
-import com.asuka.backend.exception.ModelException;
+import com.asuka.backend.common.exception.ModelException;
 import com.asuka.backend.integration.ai.ModelMessage;
 import com.asuka.backend.integration.ai.ModelRequest;
 import com.asuka.backend.integration.ai.ModelResponse;

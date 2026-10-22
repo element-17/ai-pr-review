@@ -1,8 +1,8 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.dto.TaskListRow;
-import com.asuka.backend.dto.TaskQueryDTO;
-import com.asuka.backend.entity.AnalysisTask;
+import com.asuka.backend.pojo.dto.TaskListRow;
+import com.asuka.backend.pojo.dto.TaskQueryDTO;
+import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

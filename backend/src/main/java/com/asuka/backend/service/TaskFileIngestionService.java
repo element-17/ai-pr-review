@@ -1,15 +1,15 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.constant.TaskFileConstant;
-import com.asuka.backend.utils.BinaryDetector;
-import com.asuka.backend.utils.LanguageDetector;
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.common.constant.TaskFileConstant;
+import com.asuka.backend.common.util.BinaryDetector;
+import com.asuka.backend.common.util.LanguageDetector;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.dto.GitHubFileResponse;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

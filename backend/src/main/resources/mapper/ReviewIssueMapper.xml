@@ -10,7 +10,7 @@
         3. 多选筛选由服务层解析成 List，再走 IN；
         4. 关键词只在单任务范围内做 LIKE，问题量有限，暂不建全文索引。
     -->
-    <select id="selectIssuePage" resultType="com.asuka.backend.vo.IssueVO">
+    <select id="selectIssuePage" resultType="com.asuka.backend.pojo.vo.IssueVO">
         SELECT i.id                AS issue_id,
                i.title             AS title,
                i.category          AS category,
@@ -71,7 +71,7 @@
     </select>
 
     <!-- 任务级处理进度：按反馈状态分组 -->
-    <select id="countByFeedbackStatus" resultType="com.asuka.backend.dto.StatusCountRow">
+    <select id="countByFeedbackStatus" resultType="com.asuka.backend.pojo.dto.StatusCountRow">
         SELECT feedback_status AS status,
                COUNT(*)        AS total
         FROM review_issue
@@ -80,7 +80,7 @@
     </select>
 
     <!-- 任务级风险分布：按严重度分组，别名统一为 status 以便复用统计行对象 -->
-    <select id="countBySeverity" resultType="com.asuka.backend.dto.StatusCountRow">
+    <select id="countBySeverity" resultType="com.asuka.backend.pojo.dto.StatusCountRow">
         SELECT severity AS status,
                COUNT(*) AS total
         FROM review_issue
@@ -89,7 +89,7 @@
     </select>
 
     <!-- Diff 行标记：只返回轻量字段，证据和建议走问题详情 -->
-    <select id="selectBriefByFile" resultType="com.asuka.backend.vo.IssueBriefVO">
+    <select id="selectBriefByFile" resultType="com.asuka.backend.pojo.vo.IssueBriefVO">
         SELECT id              AS issue_id,
                title           AS title,
                category        AS category,
@@ -105,7 +105,7 @@
     </select>
 
     <!-- 导出 Markdown：一次取全量问题，避免逐条查询 -->
-    <select id="selectForExport" resultType="com.asuka.backend.dto.IssueExportRow">
+    <select id="selectForExport" resultType="com.asuka.backend.pojo.dto.IssueExportRow">
         SELECT i.id                AS issue_id,
                i.title             AS title,
                i.category          AS category,

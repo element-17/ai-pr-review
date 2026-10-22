@@ -1,15 +1,15 @@
 package com.asuka.backend.controller.admin;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.asuka.backend.constant.AuthConstant;
-import com.asuka.backend.result.PageResult;
-import com.asuka.backend.result.Result;
-import com.asuka.backend.dto.UserCreateDTO;
-import com.asuka.backend.dto.UserQueryDTO;
-import com.asuka.backend.dto.UserUpdateDTO;
+import com.asuka.backend.common.constant.AuthConstant;
+import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.common.result.Result;
+import com.asuka.backend.pojo.dto.UserCreateDTO;
+import com.asuka.backend.pojo.dto.UserQueryDTO;
+import com.asuka.backend.pojo.dto.UserUpdateDTO;
 import com.asuka.backend.service.SysUserService;
-import com.asuka.backend.vo.RoleCountVO;
-import com.asuka.backend.vo.UserVO;
+import com.asuka.backend.pojo.vo.RoleCountVO;
+import com.asuka.backend.pojo.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

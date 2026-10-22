@@ -1,6 +1,6 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

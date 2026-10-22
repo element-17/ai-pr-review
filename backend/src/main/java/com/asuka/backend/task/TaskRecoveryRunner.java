@@ -1,8 +1,8 @@
 package com.asuka.backend.task;
 
-import com.asuka.backend.constant.TaskErrorCodeConstant;
-import com.asuka.backend.constant.TaskStatusConstant;
-import com.asuka.backend.entity.AnalysisTask;
+import com.asuka.backend.common.constant.TaskErrorCodeConstant;
+import com.asuka.backend.common.constant.TaskStatusConstant;
+import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;

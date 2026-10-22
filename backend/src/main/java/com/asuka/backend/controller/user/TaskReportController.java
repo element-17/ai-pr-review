@@ -1,9 +1,9 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.result.Result;
+import com.asuka.backend.common.result.Result;
 import com.asuka.backend.service.TaskReportService;
-import com.asuka.backend.vo.MarkdownExportVO;
-import com.asuka.backend.vo.ReportVO;
+import com.asuka.backend.pojo.vo.MarkdownExportVO;
+import com.asuka.backend.pojo.vo.ReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

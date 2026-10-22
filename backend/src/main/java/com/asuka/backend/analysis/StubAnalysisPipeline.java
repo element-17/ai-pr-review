@@ -1,15 +1,15 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.constant.TaskFileConstant;
-import com.asuka.backend.exception.TaskCanceledException;
-import com.asuka.backend.properties.TaskProperties;
-import com.asuka.backend.entity.AnalysisReport;
-import com.asuka.backend.entity.AnalysisTask;
-import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.common.constant.TaskFileConstant;
+import com.asuka.backend.common.exception.TaskCanceledException;
+import com.asuka.backend.common.properties.TaskProperties;
+import com.asuka.backend.pojo.entity.AnalysisReport;
+import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;

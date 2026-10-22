@@ -1,12 +1,12 @@
 package com.asuka.backend.controller.auth;
 
-import com.asuka.backend.result.Result;
-import com.asuka.backend.dto.LoginDTO;
-import com.asuka.backend.dto.RefreshTokenDTO;
-import com.asuka.backend.dto.RegisterDTO;
+import com.asuka.backend.common.result.Result;
+import com.asuka.backend.pojo.dto.LoginDTO;
+import com.asuka.backend.pojo.dto.RefreshTokenDTO;
+import com.asuka.backend.pojo.dto.RegisterDTO;
 import com.asuka.backend.service.AuthService;
-import com.asuka.backend.vo.LoginVO;
-import com.asuka.backend.vo.UserInfoVO;
+import com.asuka.backend.pojo.vo.LoginVO;
+import com.asuka.backend.pojo.vo.UserInfoVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

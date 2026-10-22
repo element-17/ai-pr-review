@@ -1,14 +1,14 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.constant.ReviewIssueConstant;
-import com.asuka.backend.dto.StatusCountRow;
+import com.asuka.backend.common.constant.ReviewIssueConstant;
+import com.asuka.backend.pojo.dto.StatusCountRow;
 import com.asuka.backend.mapper.ReviewIssueMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.vo.CoverageVO;
-import com.asuka.backend.vo.FileStatsVO;
-import com.asuka.backend.vo.IssueStatsVO;
-import com.asuka.backend.vo.SeverityStatsVO;
-import com.asuka.backend.vo.TaskStatsVO;
+import com.asuka.backend.pojo.vo.CoverageVO;
+import com.asuka.backend.pojo.vo.FileStatsVO;
+import com.asuka.backend.pojo.vo.IssueStatsVO;
+import com.asuka.backend.pojo.vo.SeverityStatsVO;
+import com.asuka.backend.pojo.vo.TaskStatsVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.asuka.backend.utils;
+package com.asuka.backend.common.util;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,6 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.entity.PullRequest;
+import com.asuka.backend.pojo.entity.PullRequest;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

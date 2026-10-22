@@ -1,8 +1,8 @@
 package com.asuka.backend.mapper;
 
-import com.asuka.backend.dto.StatusCountRow;
-import com.asuka.backend.entity.TaskFile;
-import com.asuka.backend.vo.PriorityFileVO;
+import com.asuka.backend.pojo.dto.StatusCountRow;
+import com.asuka.backend.pojo.entity.TaskFile;
+import com.asuka.backend.pojo.vo.PriorityFileVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

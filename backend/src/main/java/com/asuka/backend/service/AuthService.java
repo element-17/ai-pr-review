@@ -1,9 +1,9 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.dto.LoginDTO;
-import com.asuka.backend.dto.RegisterDTO;
-import com.asuka.backend.vo.LoginVO;
-import com.asuka.backend.vo.UserInfoVO;
+import com.asuka.backend.pojo.dto.LoginDTO;
+import com.asuka.backend.pojo.dto.RegisterDTO;
+import com.asuka.backend.pojo.vo.LoginVO;
+import com.asuka.backend.pojo.vo.UserInfoVO;
 
 /**
  * 认证服务。

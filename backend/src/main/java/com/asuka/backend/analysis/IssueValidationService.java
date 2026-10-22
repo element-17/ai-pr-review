@@ -1,9 +1,9 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.constant.ReviewIssueConstant;
-import com.asuka.backend.utils.PatchLineIndex;
-import com.asuka.backend.dto.GeneratedIssueDTO;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.common.constant.ReviewIssueConstant;
+import com.asuka.backend.common.util.PatchLineIndex;
+import com.asuka.backend.pojo.dto.GeneratedIssueDTO;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.service.ReviewIssueService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

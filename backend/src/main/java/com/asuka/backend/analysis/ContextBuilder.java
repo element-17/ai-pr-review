@@ -1,7 +1,7 @@
 package com.asuka.backend.analysis;
 
-import com.asuka.backend.utils.PatchLineIndex;
-import com.asuka.backend.entity.TaskFile;
+import com.asuka.backend.common.util.PatchLineIndex;
+import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.dto.GitHubContentItem;
 import org.springframework.util.StringUtils;

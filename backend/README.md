@@ -156,23 +156,25 @@ Redis key：
 
 ## 代码分层
 
-对齐 `sky-take-out` 的按职责分包；当前是单 Maven 模块，不强行拆多模块。
+学习 `sky-take-out` 的职责分层，但保持单 Maven 模块；共享能力和数据模型先收口，业务层再按职责展开。
 
 ```text
+common.constant/context    -> 状态码、错误码、用户上下文
+common.exception           -> 全局异常处理器和自定义异常
+common.result              -> Result、PageResult
+common.util                -> PatchLineIndex、PatchDiffParser、GitHubUrlUtil、二进制/语言检测
+common.logging             -> 日志脱敏、traceId 过滤器
+common.interceptor         -> 登录用户上下文拦截器
+common.properties          -> AiProperties、GitHubProperties、PrAppProperties、TaskProperties
+
+pojo.dto / pojo.entity / pojo.vo -> 入参、数据库实体、出参
+
 controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
 service / service.impl     -> 业务服务与实现（任务、设置、导出、问题反馈等）
 task                       -> TaskWorker、TaskDispatcher、TaskRecoveryRunner
 analysis                   -> AI 分析流水线、agent 工具循环、上下文、校验和内部模型
 mapper                     -> BaseMapper 单表 CRUD；XML 复杂查询
-entity                     -> 数据库实体
-dto / vo                   -> 入参 / 出参，避免暴露密码等敏感字段
 config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、MVC
-properties                 -> AiProperties、GitHubProperties、PrAppProperties、TaskProperties
-constant / context         -> 状态码、错误码、用户上下文
-result                     -> Result、PageResult
-utils                      -> PatchLineIndex、GitHubUrlUtil、二进制/语言检测
-logging / filter           -> 日志脱敏、traceId 过滤器
-handler / exception        -> 全局异常处理器和自定义异常
 integration.ai/github      -> 模型客户端、GitHub 客户端及其 DTO
 ```
 

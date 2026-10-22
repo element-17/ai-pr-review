@@ -1,6 +1,6 @@
 package com.asuka.backend.integration.github;
 
-import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.common.exception.BusinessException;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;

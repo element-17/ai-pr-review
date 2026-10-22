@@ -1,13 +1,13 @@
 package com.asuka.backend.service.impl;
 
-import com.asuka.backend.constant.ReportLanguageConstant;
-import com.asuka.backend.exception.BusinessException;
-import com.asuka.backend.dto.UserSettingUpdateDTO;
-import com.asuka.backend.entity.UserSetting;
+import com.asuka.backend.common.constant.ReportLanguageConstant;
+import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.pojo.dto.UserSettingUpdateDTO;
+import com.asuka.backend.pojo.entity.UserSetting;
 import com.asuka.backend.mapper.UserSettingMapper;
 import com.asuka.backend.service.UserSettingService;
-import com.asuka.backend.vo.AnalysisConfigVO;
-import com.asuka.backend.vo.UserSettingVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
+import com.asuka.backend.pojo.vo.UserSettingVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
