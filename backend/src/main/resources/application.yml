@@ -68,6 +68,6 @@ springdoc:
 
 logging:
   level:
-    com.asuka.backend.mapper: debug
+    # SQL 调试只在 dev profile 的 logback 配置中开启，避免生产日志泄露参数
     com.asuka.backend.service: info
     com.asuka.backend.controller: info

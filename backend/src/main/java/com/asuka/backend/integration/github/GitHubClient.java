@@ -165,6 +165,7 @@ public class GitHubClient {
     }
 
     private String getForString(String path, String accept, Object... uriVars) {
+        long started = System.currentTimeMillis();
         int attempt = 0;
         while (true) {
             try {
@@ -172,17 +173,30 @@ public class GitHubClient {
                 var spec = StringUtils.hasText(accept)
                         ? uriSpec.accept(MediaType.parseMediaType(accept))
                         : uriSpec;
-                return spec.retrieve().body(String.class);
+                String body = spec.retrieve().body(String.class);
+                long durationMs = System.currentTimeMillis() - started;
+                if (durationMs >= 1000) {
+                    log.info("GitHub API 慢请求：path={}, durationMs={}", path, durationMs);
+                } else {
+                    log.debug("GitHub API 完成：path={}, durationMs={}", path, durationMs);
+                }
+                return body;
             } catch (RestClientResponseException ex) {
                 if (shouldRetry(ex) && attempt < MAX_RETRIES) {
                     long delay = retryDelay(ex, attempt);
-                    log.warn("GitHub API 暂时失败，{}ms 后重试：status={}", delay, ex.getStatusCode().value());
+                    log.warn("GitHub API 暂时失败，{}ms 后重试：status={}, durationMs={}",
+                            delay, ex.getStatusCode().value(), System.currentTimeMillis() - started);
                     sleep(delay);
                     attempt++;
                     continue;
                 }
-                throw mapException(ex);
+                GitHubApiException mapped = mapException(ex);
+                log.warn("GitHub API 失败：path={}, status={}, durationMs={}",
+                        path, ex.getStatusCode().value(), System.currentTimeMillis() - started);
+                throw mapped;
             } catch (ResourceAccessException ex) {
+                log.warn("GitHub API 超时：path={}, durationMs={}",
+                        path, System.currentTimeMillis() - started);
                 throw new GitHubApiException(GitHubApiException.Kind.TIMEOUT, 0, "GitHub 请求超时", ex);
             }
         }
@@ -222,7 +236,6 @@ public class GitHubClient {
             kind = GitHubApiException.Kind.UNKNOWN;
         }
         // 不打印响应体，避免把 GitHub 原始内容或敏感信息写入日志
-        log.warn("GitHub API 请求失败：status={}, kind={}", status, kind);
         return new GitHubApiException(kind, status, "GitHub 请求失败");
     }
 

@@ -64,6 +64,7 @@ public class DeepSeekClient implements ModelClient {
             request.setThinking(java.util.Map.of("type", "disabled"));
         }
 
+        long started = System.currentTimeMillis();
         try {
             String body = OBJECT_MAPPER.writeValueAsString(request);
             String responseBody = restClient.post()
@@ -75,23 +76,27 @@ public class DeepSeekClient implements ModelClient {
                     .body(String.class);
             ModelResponse response = OBJECT_MAPPER.readValue(responseBody, ModelResponse.class);
             if (response.getUsage() != null) {
-                log.info("DeepSeek 调用完成：prompt={}, completion={}, total={}",
+                log.info("DeepSeek 调用完成：prompt={}, completion={}, total={}, durationMs={}",
                         response.getUsage().getPromptTokens(),
                         response.getUsage().getCompletionTokens(),
-                        response.getUsage().getTotalTokens());
+                        response.getUsage().getTotalTokens(),
+                        System.currentTimeMillis() - started);
             }
             return response;
         } catch (RestClientResponseException ex) {
-            log.warn("DeepSeek 调用失败：HTTP {}", ex.getStatusCode().value());
+            log.warn("DeepSeek 调用失败：HTTP {}, durationMs={}",
+                    ex.getStatusCode().value(), System.currentTimeMillis() - started);
             throw new ModelException(ModelException.Kind.UPSTREAM,
                     "DeepSeek 调用失败：HTTP " + ex.getStatusCode().value());
         } catch (ResourceAccessException ex) {
-            log.warn("DeepSeek 调用超时：{}", ex.getMessage());
+            log.warn("DeepSeek 调用超时：{}, durationMs={}",
+                    ex.getMessage(), System.currentTimeMillis() - started);
             throw new ModelException(ModelException.Kind.TIMEOUT, "DeepSeek 调用超时", ex);
         } catch (ModelException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.warn("DeepSeek 响应解析失败：{}", ex.getClass().getSimpleName());
+            log.warn("DeepSeek 响应解析失败：{}, durationMs={}",
+                    ex.getClass().getSimpleName(), System.currentTimeMillis() - started);
             throw new ModelException(ModelException.Kind.FORMAT, "DeepSeek 响应解析失败", ex);
         }
     }

@@ -133,6 +133,15 @@ Redis key：
 | `auth:refresh:user:{userId}` | refresh-token 集合 | 7 天 |
 | `auth:login:fail:{username}` | 连续失败次数 | 15 分钟 |
 
+## 日志与可观测性
+
+- 每个请求生成或透传 `X-Request-Id`，写入 MDC `traceId` 并回写到响应头；异步任务日志使用 `task-{taskId}` 作为 traceId。
+- 访问日志只记录 `method/path/status/durationMs/ip/userId`，不记录 query、请求体、请求头或响应体，避免游客令牌和密码进入日志。
+- 文件日志：`logs/ai-pr-review.log`（50MB 滚动、保留 30 天、总量 1GB）和 `logs/ai-pr-review-error.log`（仅 ERROR，20MB/30 天/512MB）；`LOG_DIR` 可覆盖目录。
+- `dev` profile 同时输出控制台和文件，非 `dev` 只输出文件；SQL DEBUG 只在 `dev` 打开。
+- 日志格式化后统一脱敏 `Authorization`、`api-key`、`access/refresh/guest token`、`password/secret`、`Bearer` 及常见 token 前缀；不打印 prompt、完整代码或密钥。
+- 任务、模型和 GitHub 客户端记录阶段/调用耗时；模型日志只记录 token 数量、耗时和状态。
+
 ## 质量验证
 
 - 20 个测试用例、真实模型指标、误报/漏报分析见 [../docs/测试用例与指标.md](../docs/测试用例与指标.md)。
