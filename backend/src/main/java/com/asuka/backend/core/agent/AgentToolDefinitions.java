@@ -1,6 +1,6 @@
 package com.asuka.backend.core.agent;
 
-import com.asuka.backend.core.integration.ai.ModelTool;
+import com.asuka.backend.core.agent.ai.ModelTool;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

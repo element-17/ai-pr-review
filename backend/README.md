@@ -171,7 +171,8 @@ pojo.dto / pojo.entity / pojo.vo -> 入参、数据库实体、出参
 
 core.analysis              -> AI 分析流水线、上下文、校验和内部模型
 core.agent                 -> agent 工具循环、工具定义/注册和提交结果
-core.integration.ai/github -> 模型客户端、GitHub 客户端及其 DTO
+core.agent.ai              -> 模型客户端、请求/响应协议和 fake 客户端
+core.github                -> GitHub 客户端、URL 解析、错误映射和 DTO
 
 controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
 service                    -> 业务接口（任务、设置、导出、问题反馈等）

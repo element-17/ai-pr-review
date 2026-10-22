@@ -2,8 +2,8 @@ package com.asuka.backend.core.analysis;
 
 import com.asuka.backend.common.util.PatchLineIndex;
 import com.asuka.backend.pojo.entity.TaskFile;
-import com.asuka.backend.core.integration.github.GitHubClient;
-import com.asuka.backend.core.integration.github.dto.GitHubContentItem;
+import com.asuka.backend.core.github.GitHubClient;
+import com.asuka.backend.core.github.dto.GitHubContentItem;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;

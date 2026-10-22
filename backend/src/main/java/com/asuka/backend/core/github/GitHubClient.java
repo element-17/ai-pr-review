@@ -1,11 +1,11 @@
-package com.asuka.backend.core.integration.github;
+package com.asuka.backend.core.github;
 
 import com.asuka.backend.common.exception.GitHubApiException;
 import com.asuka.backend.common.properties.GitHubProperties;
-import com.asuka.backend.core.integration.github.dto.GitHubCommitResponse;
-import com.asuka.backend.core.integration.github.dto.GitHubContentItem;
-import com.asuka.backend.core.integration.github.dto.GitHubFileResponse;
-import com.asuka.backend.core.integration.github.dto.GitHubPrResponse;
+import com.asuka.backend.core.github.dto.GitHubCommitResponse;
+import com.asuka.backend.core.github.dto.GitHubContentItem;
+import com.asuka.backend.core.github.dto.GitHubFileResponse;
+import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

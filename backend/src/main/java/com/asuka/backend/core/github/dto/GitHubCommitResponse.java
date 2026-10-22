@@ -1,4 +1,4 @@
-package com.asuka.backend.core.integration.github.dto;
+package com.asuka.backend.core.github.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

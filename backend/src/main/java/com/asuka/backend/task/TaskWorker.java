@@ -11,7 +11,7 @@ import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.common.exception.ModelException;
 import com.asuka.backend.common.exception.GitHubApiException;
-import com.asuka.backend.core.integration.github.GitHubErrorMapper;
+import com.asuka.backend.core.github.GitHubErrorMapper;
 import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.exception.TaskCanceledException;
 import com.asuka.backend.service.TaskFileIngestionService;

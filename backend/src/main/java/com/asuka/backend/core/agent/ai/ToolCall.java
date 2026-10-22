@@ -1,4 +1,4 @@
-package com.asuka.backend.core.integration.ai;
+package com.asuka.backend.core.agent.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
