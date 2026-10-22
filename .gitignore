@@ -14,6 +14,8 @@
 ### Frontend ###
 node_modules/
 dist/
+# 临时联调前端，不纳入仓库
+frontend/
 
 ### Logs ###
 logs/
