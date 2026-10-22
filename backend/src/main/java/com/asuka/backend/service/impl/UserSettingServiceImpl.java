@@ -99,7 +99,15 @@ public class UserSettingServiceImpl implements UserSettingService {
 
     @Override
     public AnalysisConfigVO buildAnalysisConfig(Long userId) {
-        UserSettingVO setting = getSettings(userId);
+        return toConfig(getSettings(userId));
+    }
+
+    @Override
+    public AnalysisConfigVO buildGuestAnalysisConfig() {
+        return toConfig(toVO(defaultSetting(null)));
+    }
+
+    private AnalysisConfigVO toConfig(UserSettingVO setting) {
         AnalysisConfigVO config = new AnalysisConfigVO();
         config.setCheckCategories(setting.getCheckCategories());
         config.setIgnoreDirs(setting.getIgnoreDirs());

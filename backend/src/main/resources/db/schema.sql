@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
     `error_code`      TINYINT     NULL COMMENT '失败或部分完成的原因编码，正常为空',
     `error_message`   VARCHAR(500) NULL COMMENT '失败或部分完成的原因摘要，已脱敏',
     `guest_token`     VARCHAR(64) NULL COMMENT '游客访问令牌，32 字节随机数的十六进制串，登录用户为空',
+    `retry_of_task_id` BIGINT     NULL COMMENT '重试来源任务 ID',
     `expire_time`     DATETIME    NULL COMMENT '游客任务过期时间，登录用户为空',
     `start_time`      DATETIME    NULL COMMENT '开始执行时间',
     `finish_time`     DATETIME    NULL COMMENT '结束时间',
@@ -134,6 +135,7 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
     KEY `idx_pr_sha_user` (`pr_id`, `head_sha`, `user_id`, `status`),
     KEY `idx_status` (`status`),
     KEY `idx_expire_time` (`expire_time`),
+    KEY `idx_retry_of_task` (`retry_of_task_id`),
     CONSTRAINT `fk_task_pr` FOREIGN KEY (`pr_id`) REFERENCES `pull_request` (`id`) ON DELETE RESTRICT,
     CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT
 ) ENGINE = InnoDB

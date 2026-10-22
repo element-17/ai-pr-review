@@ -57,6 +57,9 @@ public class AnalysisTask implements Serializable {
     /** 游客访问令牌，登录用户任务为空 */
     private String guestToken;
 
+    /** 重试来源任务 ID；正常创建为空 */
+    private Long retryOfTaskId;
+
     /** 游客任务过期时间 */
     private LocalDateTime expireTime;
 

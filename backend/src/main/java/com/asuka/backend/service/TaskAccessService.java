@@ -89,6 +89,18 @@ public class TaskAccessService {
     }
 
     /**
+     * 要求登录用户是任务所有者；游客任务和他人任务都拒绝。
+     */
+    public AnalysisTask requireOwnedTask(Long taskId) {
+        Long userId = StpUtil.getLoginIdAsLong();
+        AnalysisTask task = requireTask(taskId);
+        if (task.getUserId() == null || !userId.equals(task.getUserId())) {
+            throw new BusinessException(403, "无权操作该任务");
+        }
+        return task;
+    }
+
+    /**
      * 可选登录：预览和创建任务允许游客，但带了无效 Authorization 时必须返回 401。
      *
      * @return 登录用户 ID；无 Authorization 时返回 null

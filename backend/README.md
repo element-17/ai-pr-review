@@ -78,8 +78,12 @@ Authorization: Bearer <accessToken>
 | --- | --- | --- |
 | GET | `/api/users/me/settings` | 读取个人设置；没有设置行时返回默认值 |
 | PATCH | `/api/users/me/settings` | 部分更新主题、语言、检查类别、忽略目录和规模上限 |
+| POST | `/api/tasks` | 创建分析任务，允许游客；支持 `Idempotency-Key` |
 | GET | `/api/tasks` | 我的历史任务，支持仓库、PR 编号、状态、日期和排序 |
 | GET | `/api/tasks/{taskId}` | 任务详情、PR 信息、统计、重点文件和下钻 ID |
+| POST | `/api/tasks/{taskId}/cancel` | 取消排队/分析中的任务 |
+| POST | `/api/tasks/{taskId}/retry` | 失败、部分完成或取消的任务重试，新建任务 |
+| DELETE | `/api/tasks/{taskId}` | 仅登录本人，逻辑删除已结束任务 |
 | GET | `/api/tasks/{taskId}/progress` | 轻量进度轮询 |
 | GET | `/api/tasks/{taskId}/files` | 文件清单，支持状态、变更类型、重点文件和路径搜索 |
 | GET | `/api/tasks/{taskId}/files/{fileId}` | 文件 patch、GitHub 链接和关联问题 |
@@ -96,8 +100,11 @@ Authorization: Bearer <accessToken>
 - 历史列表 `/api/tasks` 只对登录用户开放，游客任务不会出现在他人的历史记录中。
 - 分页统一返回 `PageResult{total, records}`；成功码沿用当前骨架的 `200`。
 - 为保持字段语义，接口会保留值为 `null` 的字段，例如报告级问题没有 `filePath` 和行号。
-- 任务创建、取消、重试（F03）和 GitHub / AI 分析链路尚未实现；F09 的候选问题入库校验已提供 `ReviewIssueService.saveGeneratedIssues` 作为后续分析模块的入口。
+- 任务创建/取消/重试/删除已实现；当前分析 pipeline 使用 `StubAnalysisPipeline`（写报告并标记文件已分析），真实 DeepSeek pipeline 在后续分支接入。
+- 游客创建任务每 IP 每小时 5 次；预览每 IP 每分钟 30 次；创建/重试支持 `Idempotency-Key`，TTL 10 分钟。
+- 服务重启后，排队任务重新投递，运行中任务标记失败 `errorCode=8`。
 - 数据库账号模型已统一为 `sys_user`，旧库迁移脚本：`deploy/sql/migration-20261021-unify-sys-user.sql`。
+- 任务重试字段迁移脚本：`deploy/sql/migration-20261022-retry-of-task.sql`。
 
 ## 双 token 设计
 

@@ -39,10 +39,12 @@ public class PrPreviewService {
     private final PullRequestService pullRequestService;
     private final AnalysisTaskMapper analysisTaskMapper;
     private final TaskAccessService taskAccessService;
+    private final RateLimitService rateLimitService;
     private final StringRedisTemplate stringRedisTemplate;
     private final GitHubProperties gitHubProperties;
 
     public PrPreviewVO preview(String url) {
+        rateLimitService.checkPreview();
         GitHubPrUrlParser.PrUrl ref = GitHubPrUrlParser.parse(url);
 
         GitHubPrResponse response;
