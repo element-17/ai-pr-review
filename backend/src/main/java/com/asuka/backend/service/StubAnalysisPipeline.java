@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "pr.ai.stub-pipeline", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "pr.ai.stub-pipeline", havingValue = "true", matchIfMissing = false)
 public class StubAnalysisPipeline implements AnalysisPipeline {
 
     private final TaskFileMapper taskFileMapper;

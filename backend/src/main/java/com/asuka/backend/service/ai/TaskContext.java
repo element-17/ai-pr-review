@@ -1,0 +1,27 @@
+package com.asuka.backend.service.ai;
+
+import com.asuka.backend.entity.TaskFile;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
+
+/**
+ * 一次任务分析上下文。
+ */
+@Data
+@AllArgsConstructor
+public class TaskContext {
+
+    private Long taskId;
+
+    private String owner;
+
+    private String repo;
+
+    private String headSha;
+
+    private List<TaskFile> files;
+
+    private TaskContextCache cache;
+}

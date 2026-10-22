@@ -100,11 +100,21 @@ Authorization: Bearer <accessToken>
 - 历史列表 `/api/tasks` 只对登录用户开放，游客任务不会出现在他人的历史记录中。
 - 分页统一返回 `PageResult{total, records}`；成功码沿用当前骨架的 `200`。
 - 为保持字段语义，接口会保留值为 `null` 的字段，例如报告级问题没有 `filePath` 和行号。
-- 任务创建/取消/重试/删除已实现；当前分析 pipeline 使用 `StubAnalysisPipeline`（写报告并标记文件已分析），真实 DeepSeek pipeline 在后续分支接入。
+- AI 分析使用 OpenAI 兼容 provider（当前联调模型 `deepseek/deepseek-v4.1-flash`，两阶段：PR 总结/重点文件 + 逐批 3–5 个文件提取问题）；`pr.ai.deepseek.base-url`、`model` 可切换其他兼容服务。
+- 无模型 Key 时可设置 `pr.ai.provider=fake`，用确定性 fake client 验证 agent 工具循环和报告链路；`pr.ai.stub-pipeline=true` 只用于状态机测试。
 - 游客创建任务每 IP 每小时 5 次；预览每 IP 每分钟 30 次；创建/重试支持 `Idempotency-Key`，TTL 10 分钟。
 - 服务重启后，排队任务重新投递，运行中任务标记失败 `errorCode=8`。
 - 数据库账号模型已统一为 `sys_user`，旧库迁移脚本：`deploy/sql/migration-20261021-unify-sys-user.sql`。
 - 任务重试字段迁移脚本：`deploy/sql/migration-20261022-retry-of-task.sql`。
+
+## AI 分析
+
+- Agent 工具：`read_file`、`find_callers`、`read_tests`、`submit_summary`、`submit_issues`；只读、路径白名单、单文件 20KB 上限，不执行 shell 或任意网络请求。
+- 上下文：GitHub Contents API；TypeScript 和 Python 轻量函数级提取，失败时回退到变更行附近窗口。
+- 批处理：每批 3–5 个文件；每批最多 6 轮模型调用、8 次工具调用；未调用提交工具时先提醒一次，仍失败则该批标记失败并保留其他批次结果。
+- 校验：文件必须属于当前任务；类别/严重度/置信度范围；行号必须落在 patch 新增行；证据不足时置信度降到 60 以下并保持待确认；重复问题合并。
+- 部分完成：批次失败或模型输出被丢弃时 status=4、errorCode=7；已完成结果保留。
+- 配置示例见 `application-dev.yml.example` 的 `pr.ai`；真实 Key 只放本地 `application-dev.yml` 或环境变量，不提交仓库。
 
 ## 双 token 设计
 
