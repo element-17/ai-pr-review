@@ -24,6 +24,10 @@ pr:
     read-timeout-ms: 30000
     user-agent: ai-pr-review
     preview-cache-seconds: 60
+  task:
+    worker-count: 2
+    queue-capacity: 100
+    dispatch-interval-ms: 5000
   app:
     frontend-base-url: http://localhost:5173
     guest-task-ttl-days: 7

@@ -28,4 +28,9 @@ public interface UserSettingService {
      * 生成任务创建时使用的非敏感配置快照，供 F03 分析任务接入。
      */
     AnalysisConfigVO buildAnalysisConfig(Long userId);
+
+    /**
+     * 游客任务使用的默认非敏感配置。
+     */
+    AnalysisConfigVO buildGuestAnalysisConfig();
 }

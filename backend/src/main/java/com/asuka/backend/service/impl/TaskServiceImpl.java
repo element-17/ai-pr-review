@@ -11,9 +11,9 @@ import com.asuka.backend.entity.AnalysisTask;
 import com.asuka.backend.entity.PullRequest;
 import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
-import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.service.AnalysisConfigParser;
+import com.asuka.backend.service.PullRequestRefreshService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskService;
 import com.asuka.backend.service.TaskStatsService;
@@ -45,12 +45,12 @@ public class TaskServiceImpl implements TaskService {
             Pattern.compile("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$");
 
     private final AnalysisTaskMapper analysisTaskMapper;
-    private final PullRequestMapper pullRequestMapper;
     private final AnalysisReportMapper analysisReportMapper;
     private final TaskFileMapper taskFileMapper;
     private final TaskAccessService taskAccessService;
     private final TaskStatsService taskStatsService;
     private final AnalysisConfigParser analysisConfigParser;
+    private final PullRequestRefreshService pullRequestRefreshService;
 
     @Override
     public PageResult<TaskListItemVO> pageMyTasks(TaskQueryDTO query) {
@@ -84,7 +84,8 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDetailVO getDetail(Long taskId) {
         AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
-        PullRequest pr = pullRequestMapper.selectById(task.getPrId());
+        // 详情页 best-effort 刷新 PR 当前 head_sha，用于 F04 过期判断；失败时使用缓存值
+        PullRequest pr = pullRequestRefreshService.refreshIfStale(task.getPrId());
 
         TaskDetailVO vo = new TaskDetailVO();
         vo.setTaskId(task.getId());
