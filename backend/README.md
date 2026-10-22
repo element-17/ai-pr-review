@@ -169,13 +169,15 @@ common.properties          -> AiProperties、GitHubProperties、PrAppProperties�
 
 pojo.dto / pojo.entity / pojo.vo -> 入参、数据库实体、出参
 
+core.analysis              -> AI 分析流水线、上下文、校验和内部模型
+core.agent                 -> agent 工具循环、工具定义/注册和提交结果
+core.integration.ai/github -> 模型客户端、GitHub 客户端及其 DTO
+
 controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
 service / service.impl     -> 业务服务与实现（任务、设置、导出、问题反馈等）
 task                       -> TaskWorker、TaskDispatcher、TaskRecoveryRunner
-analysis                   -> AI 分析流水线、agent 工具循环、上下文、校验和内部模型
 mapper                     -> BaseMapper 单表 CRUD；XML 复杂查询
 config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、MVC
-integration.ai/github      -> 模型客户端、GitHub 客户端及其 DTO
 ```
 
-`analysis` 内部使用清晰的数据名：`AnalysisResult`、`AnalysisContext`、`AgentContext`、`AgentSubmission`、`IssueDraft`、`IssueDraftList`、`SummaryDraft`、`IssueValidationResult`，避免和 service/util 混淆。
+`core.analysis` 使用 `AnalysisResult`、`AnalysisContext`、`IssueDraft`、`IssueDraftList`、`SummaryDraft`、`IssueValidationResult`；`core.agent` 使用 `AgentContext`、`AgentSubmission` 等明确的 agent 数据名，避免和 service/util 混淆。
