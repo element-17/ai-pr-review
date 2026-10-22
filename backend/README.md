@@ -146,6 +146,8 @@ Redis key：
 
 ## 质量验证
 
+- 全量 API/状态回归见 [../docs/全量业务回归与状态验证.md](../docs/全量业务回归与状态验证.md)。
+- 非平凡需求方案见 [../docs/非平凡需求设计说明.md](../docs/非平凡需求设计说明.md)，交互流程见 [../docs/交互流程.md](../docs/交互流程.md)，数据状态见 [../docs/数据与状态变更.md](../docs/数据与状态变更.md)。
 - 20 个测试用例、真实模型指标、误报/漏报分析见 [../docs/测试用例与指标.md](../docs/测试用例与指标.md)。
 - 真实模型验证：`deepseek/deepseek-v4.1-flash` 分析 `octocat/Hello-World#11596`，任务 status=3、20.8 秒、3 次调用、4504 tokens。
 - 双模型对比与选型见 [../docs/模型对比与选型.md](../docs/模型对比与选型.md)：v4.1 Flash 默认，v4 Pro 作为复杂 PR 可选；对比脚本 `scripts/model-comparison.mjs`。
