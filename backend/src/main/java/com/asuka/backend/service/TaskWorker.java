@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -42,6 +43,15 @@ public class TaskWorker {
     private final AnalysisConfigParser analysisConfigParser;
 
     public void process(Long taskId) {
+        MDC.put("traceId", "task-" + taskId);
+        try {
+            processInternal(taskId);
+        } finally {
+            MDC.remove("traceId");
+        }
+    }
+
+    private void processInternal(Long taskId) {
         long started = System.currentTimeMillis();
         LocalDateTime now = LocalDateTime.now();
         int claimed = analysisTaskMapper.update(null, new LambdaUpdateWrapper<AnalysisTask>()
@@ -70,12 +80,17 @@ public class TaskWorker {
         try {
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_PR, 10);
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_FILES, 20);
+            long fetchStarted = System.currentTimeMillis();
             List<TaskFile> files = taskFileIngestionService.ingest(task, pr, config);
-            log.info("任务 {} 文件拉取完成：files={}", taskId, files.size());
+            log.info("任务 {} 文件拉取完成：files={}, durationMs={}",
+                    taskId, files.size(), System.currentTimeMillis() - fetchStarted);
 
             updateProgress(taskId, TaskStatusConstant.STAGE_CONTEXT, 35);
             updateProgress(taskId, TaskStatusConstant.STAGE_AI, 50);
+            long aiStarted = System.currentTimeMillis();
             AnalysisPipelineResult result = analysisPipeline.run(task, pr, config);
+            log.info("任务 {} AI 分析完成：durationMs={}, partial={}",
+                    taskId, System.currentTimeMillis() - aiStarted, result.partial());
 
             updateProgress(taskId, TaskStatusConstant.STAGE_VALIDATE, 90);
             long skipped = countFiles(taskId, TaskFileConstant.STATUS_SKIPPED);
