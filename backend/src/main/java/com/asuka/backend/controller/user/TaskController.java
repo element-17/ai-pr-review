@@ -5,10 +5,12 @@ import com.asuka.backend.common.result.PageResult;
 import com.asuka.backend.common.result.Result;
 import com.asuka.backend.dto.TaskCreateDTO;
 import com.asuka.backend.dto.TaskQueryDTO;
+import com.asuka.backend.service.TaskCompareService;
 import com.asuka.backend.service.TaskCreateService;
 import com.asuka.backend.service.TaskLifecycleService;
 import com.asuka.backend.service.TaskService;
 import com.asuka.backend.vo.TaskActionVO;
+import com.asuka.backend.vo.TaskCompareVO;
 import com.asuka.backend.vo.TaskCreateVO;
 import com.asuka.backend.vo.TaskDeleteVO;
 import com.asuka.backend.vo.TaskDetailVO;
@@ -46,6 +48,7 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskCreateService taskCreateService;
     private final TaskLifecycleService taskLifecycleService;
+    private final TaskCompareService taskCompareService;
 
     @Operation(summary = "创建分析任务", description = "允许游客；创建后异步拉取变更并分析")
     @SaIgnore
@@ -102,5 +105,16 @@ public class TaskController {
             @Parameter(description = "任务 ID") @PathVariable @Min(value = 1, message = "任务 ID 非法")
             Long taskId) {
         return Result.success(taskLifecycleService.delete(taskId));
+    }
+
+    @Operation(summary = "版本对比", description = "对比同一 PR 两个已完成/部分完成版本的问题和总结")
+    @SecurityRequirement(name = "sa-token")
+    @GetMapping("/{baseTaskId}/compare/{targetTaskId}")
+    public Result<TaskCompareVO> compare(
+            @Parameter(description = "基线任务 ID") @PathVariable @Min(value = 1, message = "任务 ID 非法")
+            Long baseTaskId,
+            @Parameter(description = "目标任务 ID") @PathVariable @Min(value = 1, message = "任务 ID 非法")
+            Long targetTaskId) {
+        return Result.success(taskCompareService.compare(baseTaskId, targetTaskId));
     }
 }
