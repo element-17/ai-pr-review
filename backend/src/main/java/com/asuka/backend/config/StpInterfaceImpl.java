@@ -3,7 +3,7 @@ package com.asuka.backend.config;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
-import com.asuka.backend.common.constant.AuthConstant;
+import com.asuka.backend.constant.AuthConstant;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

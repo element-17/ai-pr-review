@@ -1,6 +1,6 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.service.TaskReportService;
 import com.asuka.backend.vo.MarkdownExportVO;
 import com.asuka.backend.vo.ReportVO;

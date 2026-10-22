@@ -151,15 +151,24 @@ Redis key：
 
 ## 代码分层
 
+对齐 `sky-take-out` 的按职责分包；当前是单 Maven 模块，不强行拆多模块。
+
 ```text
-controller.auth   -> 公开认证接口
-controller.admin  -> 管理员接口
-controller.user   -> 用户侧业务接口（设置、任务、文件、问题、报告）
-service           -> 业务逻辑、权限校验、事务、token 流程
-service.impl
-mapper            -> BaseMapper 单表 CRUD；XML 复杂查询
-entity            -> 数据库实体
-dto / vo          -> 入参 / 出参，避免暴露密码等敏感字段
-config            -> MyBatis-Plus、Sa-Token、Swagger、CORS
-common            -> Result、PageResult、异常、上下文、常量、GitHub 链接工具
+controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
+service / service.impl     -> 业务服务与实现（任务、设置、导出、问题反馈等）
+task                       -> TaskWorker、TaskDispatcher、TaskRecoveryRunner
+analysis                   -> AI 分析流水线、agent 工具循环、上下文、校验和内部模型
+mapper                     -> BaseMapper 单表 CRUD；XML 复杂查询
+entity                     -> 数据库实体
+dto / vo                   -> 入参 / 出参，避免暴露密码等敏感字段
+config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、MVC
+properties                 -> AiProperties、GitHubProperties、PrAppProperties、TaskProperties
+constant / context         -> 状态码、错误码、用户上下文
+result                     -> Result、PageResult
+utils                      -> PatchLineIndex、GitHubUrlUtil、二进制/语言检测
+logging / filter           -> 日志脱敏、traceId 过滤器
+handler / exception        -> 全局异常处理器和自定义异常
+integration.ai/github      -> 模型客户端、GitHub 客户端及其 DTO
 ```
+
+`analysis` 内部使用清晰的数据名：`AnalysisResult`、`AnalysisContext`、`AgentContext`、`AgentSubmission`、`IssueDraft`、`IssueDraftList`、`SummaryDraft`、`IssueValidationResult`，避免和 service/util 混淆。

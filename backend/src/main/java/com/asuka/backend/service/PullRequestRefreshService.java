@@ -1,7 +1,7 @@
 package com.asuka.backend.service;
 
 import com.asuka.backend.entity.PullRequest;
-import com.asuka.backend.integration.github.GitHubApiException;
+import com.asuka.backend.exception.GitHubApiException;
 import com.asuka.backend.integration.github.GitHubClient;
 import com.asuka.backend.integration.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.PullRequestMapper;

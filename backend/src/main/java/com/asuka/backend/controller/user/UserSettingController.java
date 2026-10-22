@@ -1,7 +1,7 @@
 package com.asuka.backend.controller.user;
 
-import com.asuka.backend.common.context.UserContext;
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.context.UserContext;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.UserSettingUpdateDTO;
 import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.vo.UserSettingVO;

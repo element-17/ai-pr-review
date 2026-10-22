@@ -1,9 +1,9 @@
 package com.asuka.backend.service.impl;
 
-import com.asuka.backend.common.constant.TaskFileConstant;
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.common.result.PageResult;
-import com.asuka.backend.common.util.GitHubUrlUtil;
+import com.asuka.backend.constant.TaskFileConstant;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.result.PageResult;
+import com.asuka.backend.utils.GitHubUrlUtil;
 import com.asuka.backend.dto.TaskFileQueryDTO;
 import com.asuka.backend.entity.AnalysisTask;
 import com.asuka.backend.entity.PullRequest;

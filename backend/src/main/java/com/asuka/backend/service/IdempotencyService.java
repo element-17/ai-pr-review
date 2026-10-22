@@ -1,6 +1,6 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.exception.BusinessException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

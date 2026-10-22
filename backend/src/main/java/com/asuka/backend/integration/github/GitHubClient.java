@@ -1,6 +1,7 @@
 package com.asuka.backend.integration.github;
 
-import com.asuka.backend.config.GitHubProperties;
+import com.asuka.backend.exception.GitHubApiException;
+import com.asuka.backend.properties.GitHubProperties;
 import com.asuka.backend.integration.github.dto.GitHubCommitResponse;
 import com.asuka.backend.integration.github.dto.GitHubContentItem;
 import com.asuka.backend.integration.github.dto.GitHubFileResponse;

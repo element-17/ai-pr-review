@@ -1,6 +1,6 @@
 package com.asuka.backend.service;
 
-import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.exception.BusinessException;
 import com.asuka.backend.dto.IssueExportRow;
 import com.asuka.backend.entity.AnalysisReport;
 import com.asuka.backend.entity.AnalysisTask;

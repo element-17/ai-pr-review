@@ -1,6 +1,6 @@
 package com.asuka.backend.controller.auth;
 
-import com.asuka.backend.common.result.Result;
+import com.asuka.backend.result.Result;
 import com.asuka.backend.dto.LoginDTO;
 import com.asuka.backend.dto.RefreshTokenDTO;
 import com.asuka.backend.dto.RegisterDTO;

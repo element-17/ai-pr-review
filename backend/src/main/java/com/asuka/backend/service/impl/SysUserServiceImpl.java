@@ -1,11 +1,11 @@
 package com.asuka.backend.service.impl;
 
 import cn.dev33.satoken.secure.BCrypt;
-import com.asuka.backend.common.constant.AuthConstant;
-import com.asuka.backend.common.constant.StatusConstant;
-import com.asuka.backend.common.context.UserContext;
-import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.common.result.PageResult;
+import com.asuka.backend.constant.AuthConstant;
+import com.asuka.backend.constant.StatusConstant;
+import com.asuka.backend.context.UserContext;
+import com.asuka.backend.exception.BusinessException;
+import com.asuka.backend.result.PageResult;
 import com.asuka.backend.dto.UserCreateDTO;
 import com.asuka.backend.dto.UserQueryDTO;
 import com.asuka.backend.dto.UserUpdateDTO;
