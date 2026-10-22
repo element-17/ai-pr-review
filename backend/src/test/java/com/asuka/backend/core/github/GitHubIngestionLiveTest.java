@@ -1,10 +1,10 @@
-package com.asuka.backend.core.integration;
+package com.asuka.backend.core.github;
 
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
-import com.asuka.backend.core.integration.github.GitHubClient;
-import com.asuka.backend.core.integration.github.dto.GitHubPrResponse;
+import com.asuka.backend.core.github.GitHubClient;
+import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.TaskFileMapper;

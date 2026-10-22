@@ -4,7 +4,7 @@ import com.asuka.backend.service.PullRequestService;
 
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.pojo.entity.PullRequest;
-import com.asuka.backend.core.integration.github.dto.GitHubPrResponse;
+import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.PullRequestMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;

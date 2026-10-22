@@ -4,7 +4,7 @@ import com.asuka.backend.pojo.entity.AnalysisReport;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
-import com.asuka.backend.core.integration.github.dto.GitHubCommitResponse;
+import com.asuka.backend.core.github.dto.GitHubCommitResponse;
 import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

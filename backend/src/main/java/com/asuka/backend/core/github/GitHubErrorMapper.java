@@ -1,4 +1,4 @@
-package com.asuka.backend.core.integration.github;
+package com.asuka.backend.core.github;
 
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.exception.GitHubApiException;

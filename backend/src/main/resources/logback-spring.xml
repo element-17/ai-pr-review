@@ -55,7 +55,7 @@
             <appender-ref ref="ERROR_FILE"/>
         </root>
         <logger name="com.asuka.backend.mapper" level="DEBUG"/>
-        <logger name="com.asuka.backend.core.integration.github" level="DEBUG"/>
+        <logger name="com.asuka.backend.core.github" level="DEBUG"/>
     </springProfile>
 
     <springProfile name="!dev">
@@ -64,7 +64,7 @@
             <appender-ref ref="ERROR_FILE"/>
         </root>
         <logger name="com.asuka.backend.mapper" level="INFO"/>
-        <logger name="com.asuka.backend.core.integration.github" level="INFO"/>
+        <logger name="com.asuka.backend.core.github" level="INFO"/>
     </springProfile>
 
 </configuration>
