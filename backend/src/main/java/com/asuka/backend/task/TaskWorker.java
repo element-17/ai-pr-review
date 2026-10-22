@@ -1,8 +1,8 @@
 package com.asuka.backend.task;
 
-import com.asuka.backend.analysis.AnalysisConfigParser;
-import com.asuka.backend.analysis.AnalysisPipeline;
-import com.asuka.backend.analysis.AnalysisResult;
+import com.asuka.backend.core.analysis.AnalysisConfigParser;
+import com.asuka.backend.core.analysis.AnalysisPipeline;
+import com.asuka.backend.core.analysis.AnalysisResult;
 import com.asuka.backend.common.constant.TaskErrorCodeConstant;
 import com.asuka.backend.common.constant.TaskFileConstant;
 import com.asuka.backend.common.constant.TaskStatusConstant;
@@ -11,7 +11,7 @@ import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.common.exception.ModelException;
 import com.asuka.backend.common.exception.GitHubApiException;
-import com.asuka.backend.integration.github.GitHubErrorMapper;
+import com.asuka.backend.core.integration.github.GitHubErrorMapper;
 import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.exception.TaskCanceledException;
 import com.asuka.backend.service.TaskFileIngestionService;

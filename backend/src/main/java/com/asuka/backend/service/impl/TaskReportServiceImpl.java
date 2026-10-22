@@ -14,7 +14,7 @@ import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
 import com.asuka.backend.mapper.ReviewIssueMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.analysis.AnalysisConfigParser;
+import com.asuka.backend.core.analysis.AnalysisConfigParser;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskReportService;
 import com.asuka.backend.service.TaskStatsService;

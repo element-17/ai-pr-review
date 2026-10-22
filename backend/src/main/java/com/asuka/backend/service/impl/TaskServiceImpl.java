@@ -12,7 +12,7 @@ import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
-import com.asuka.backend.analysis.AnalysisConfigParser;
+import com.asuka.backend.core.analysis.AnalysisConfigParser;
 import com.asuka.backend.service.PullRequestRefreshService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskService;

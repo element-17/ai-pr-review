@@ -2,8 +2,8 @@ package com.asuka.backend.service;
 
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.common.exception.GitHubApiException;
-import com.asuka.backend.integration.github.GitHubClient;
-import com.asuka.backend.integration.github.dto.GitHubPrResponse;
+import com.asuka.backend.core.integration.github.GitHubClient;
+import com.asuka.backend.core.integration.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.PullRequestMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
