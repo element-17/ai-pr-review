@@ -1,0 +1,85 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ai-pr-review}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      TZ: Asia/Shanghai
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Shanghai
+      LOG_DIR: /app/logs
+      PR_DATASOURCE_HOST: mysql
+      PR_DATASOURCE_PORT: 3306
+      PR_DATASOURCE_DATABASE: ${MYSQL_DATABASE:-ai-pr-review}
+      PR_DATASOURCE_USERNAME: ${MYSQL_USER:-app}
+      PR_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      PR_REDIS_HOST: redis
+      PR_REDIS_PORT: 6379
+      PR_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      PR_REDIS_DATABASE: 0
+      PR_AI_PROVIDER: deepseek
+      PR_AI_DEEPSEEK_API_KEY: ${PR_AI_DEEPSEEK_API_KEY}
+      PR_AI_DEEPSEEK_BASE_URL: ${PR_AI_DEEPSEEK_BASE_URL}
+      PR_AI_DEEPSEEK_MODEL: ${PR_AI_DEEPSEEK_MODEL}
+      PR_GITHUB_TOKEN: ${PR_GITHUB_TOKEN:-}
+      PR_APP_FRONTEND_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend-logs:/app/logs
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # 前端不是本仓库交付物；把 frontend/dist 内容复制到 deploy/nginx/html，或改挂载
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  redis-data:
+  backend-logs:
