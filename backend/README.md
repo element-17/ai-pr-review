@@ -93,6 +93,7 @@ Authorization: Bearer <accessToken>
 | POST | `/api/tasks/{taskId}/issues/{issueId}/undo` | 撤销人工处理 |
 | GET | `/api/tasks/{taskId}/report` | 报告总结与覆盖统计 |
 | GET | `/api/tasks/{taskId}/export` | 导出 Markdown，语言跟随任务固定的报告语言 |
+| GET | `/api/tasks/{baseTaskId}/compare/{targetTaskId}` | 同一 PR 两个分析版本的问题与总结对比 |
 
 说明：
 
@@ -114,6 +115,7 @@ Authorization: Bearer <accessToken>
 - 批处理：每批 3–5 个文件；每批最多 6 轮模型调用、8 次工具调用；未调用提交工具时先提醒一次，仍失败则该批标记失败并保留其他批次结果。
 - 校验：文件必须属于当前任务；类别/严重度/置信度范围；行号必须落在 patch 新增行；证据不足时置信度降到 60 以下并保持待确认；重复问题合并。
 - 部分完成：批次失败或模型输出被丢弃时 status=4、errorCode=7；已完成结果保留。
+- 版本对比：仅登录本人、同一 PR、两个已完成/部分完成任务；按文件路径（含重命名前后路径）、类别、规范化标题匹配，返回 added/remaining/resolved、`lineShifted` 和总结字段变化；低置信匹配标记 `matchConfidence=low`。
 - 配置示例见 `application-dev.yml.example` 的 `pr.ai`；真实 Key 只放本地 `application-dev.yml` 或环境变量，不提交仓库。
 
 ## 双 token 设计
