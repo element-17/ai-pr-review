@@ -1,0 +1,50 @@
+# 本地开发配置示例
+# 使用方法：
+#   1. 复制本文件为 application-dev.yml；
+#   2. 填入本地 MySQL / Redis 连接信息；
+#   3. application-dev.yml 已被 .gitignore 忽略，不要提交真实密码。
+pr:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: ai-pr-review
+    username: root
+    password: your_mysql_password
+  redis:
+    host: localhost
+    port: 6379
+    password: your_redis_password
+    database: 0
+  github:
+    # 只用于服务端访问 GitHub，不要提交真实 Token
+    token: your_github_token
+    api-base-url: https://api.github.com
+    connect-timeout-ms: 5000
+    read-timeout-ms: 30000
+    user-agent: ai-pr-review
+    preview-cache-seconds: 60
+  task:
+    worker-count: 2
+    queue-capacity: 100
+    dispatch-interval-ms: 5000
+  ai:
+    # deepseek：真实模型；fake：无 Key 的本地联调/自动化测试
+    provider: deepseek
+    batch-size: 4
+    # 大 PR 的批内并发数，1-4；1 表示串行
+    batch-concurrency: 2
+    max-turns: 6
+    max-tool-calls: 8
+    deepseek:
+      # 推荐用环境变量，不要把真实 Key 写进文件
+      api-key: ${DEEPSEEK_API_KEY:}
+      base-url: https://api.commandcode.ai/provider/v1
+      model: deepseek/deepseek-v4.1-flash
+      connect-timeout-ms: 10000
+      read-timeout-ms: 180000
+      max-tokens: 8192
+      temperature: 0.1
+  app:
+    frontend-base-url: http://localhost:5173
+    guest-task-ttl-days: 7

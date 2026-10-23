@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asuka.backend.mapper.AnalysisTaskMapper">
+
+    <!--
+        历史任务列表：
+        1. 只查当前用户、未逻辑删除的任务；
+        2. 关联 pull_request 支持仓库、PR 编号筛选；
+        3. 过期判断比较任务 head_sha 与 PR 当前 head_sha；
+        4. 大文本和统计字段不在列表中返回，避免列表页变慢。
+    -->
+    <select id="selectTaskPage" resultType="com.asuka.backend.pojo.dto.TaskListRow">
+        SELECT t.id                    AS task_id,
+               p.repo_full_name        AS repo_full_name,
+               p.pr_number             AS pr_number,
+               p.title                 AS pr_title,
+               t.head_sha              AS head_sha,
+               t.status                AS status,
+               t.stage                 AS stage,
+               t.progress              AS progress,
+               t.report_language       AS report_language,
+               CASE WHEN t.head_sha = p.head_sha THEN 0 ELSE 1 END AS is_expired,
+               t.create_time           AS create_time,
+               t.finish_time           AS finish_time
+        FROM analysis_task t
+                 INNER JOIN pull_request p ON p.id = t.pr_id
+        WHERE t.user_id = #{userId}
+          AND t.is_deleted = 0
+        <if test="query.repo != null and query.repo != ''">
+            AND p.repo_full_name = #{query.repo}
+        </if>
+        <if test="query.prNumber != null">
+            AND p.pr_number = #{query.prNumber}
+        </if>
+        <if test="query.status != null">
+            AND t.status = #{query.status}
+        </if>
+        <if test="query.startDate != null">
+            AND t.create_time &gt;= #{query.startDate}
+        </if>
+        <if test="query.endDate != null">
+            AND t.create_time &lt; DATE_ADD(#{query.endDate}, INTERVAL 1 DAY)
+        </if>
+        <choose>
+            <when test="'createTime_asc'.equals(query.sort)">
+                ORDER BY t.create_time ASC, t.id ASC
+            </when>
+            <otherwise>
+                ORDER BY t.create_time DESC, t.id DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asuka.backend.mapper.ReviewIssueMapper">
+
+    <!--
+        问题列表：
+        1. 全部查询都带 task_id，避免横向越权；
+        2. 文件关联同时校验 file.task_id，防止脏数据把问题挂到别的任务文件；
+        3. 多选筛选由服务层解析成 List，再走 IN；
+        4. 关键词只在单任务范围内做 LIKE，问题量有限，暂不建全文索引。
+    -->
+    <select id="selectIssuePage" resultType="com.asuka.backend.pojo.vo.IssueVO">
+        SELECT i.id                AS issue_id,
+               i.title             AS title,
+               i.category          AS category,
+               i.severity          AS severity,
+               i.confidence        AS confidence,
+               i.file_id           AS file_id,
+               f.file_path         AS file_path,
+               i.start_line        AS start_line,
+               i.end_line          AS end_line,
+               i.feedback_status   AS feedback_status,
+               i.update_time       AS update_time
+        FROM review_issue i
+                 LEFT JOIN task_file f ON f.id = i.file_id AND f.task_id = i.task_id
+        WHERE i.task_id = #{taskId}
+        <if test="param.severities != null and param.severities.size() > 0">
+            AND i.severity IN
+            <foreach collection="param.severities" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="param.categories != null and param.categories.size() > 0">
+            AND i.category IN
+            <foreach collection="param.categories" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="param.feedbackStatuses != null and param.feedbackStatuses.size() > 0">
+            AND i.feedback_status IN
+            <foreach collection="param.feedbackStatuses" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="param.fileId != null">
+            AND i.file_id = #{param.fileId}
+        </if>
+        <if test="param.keyword != null and param.keyword != ''">
+            AND (
+                i.title LIKE CONCAT('%', #{param.keyword}, '%')
+                OR i.trigger_condition LIKE CONCAT('%', #{param.keyword}, '%')
+                OR i.impact LIKE CONCAT('%', #{param.keyword}, '%')
+                OR i.evidence LIKE CONCAT('%', #{param.keyword}, '%')
+            )
+        </if>
+        <choose>
+            <when test="'severity_asc'.equals(param.sort)">
+                ORDER BY i.severity ASC, i.id ASC
+            </when>
+            <when test="'createTime_asc'.equals(param.sort)">
+                ORDER BY i.create_time ASC, i.id ASC
+            </when>
+            <when test="'createTime_desc'.equals(param.sort)">
+                ORDER BY i.create_time DESC, i.id DESC
+            </when>
+            <otherwise>
+                ORDER BY i.severity DESC, i.id ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 任务级处理进度：按反馈状态分组 -->
+    <select id="countByFeedbackStatus" resultType="com.asuka.backend.pojo.dto.StatusCountRow">
+        SELECT feedback_status AS status,
+               COUNT(*)        AS total
+        FROM review_issue
+        WHERE task_id = #{taskId}
+        GROUP BY feedback_status
+    </select>
+
+    <!-- 任务级风险分布：按严重度分组，别名统一为 status 以便复用统计行对象 -->
+    <select id="countBySeverity" resultType="com.asuka.backend.pojo.dto.StatusCountRow">
+        SELECT severity AS status,
+               COUNT(*) AS total
+        FROM review_issue
+        WHERE task_id = #{taskId}
+        GROUP BY severity
+    </select>
+
+    <!-- Diff 行标记：只返回轻量字段，证据和建议走问题详情 -->
+    <select id="selectBriefByFile" resultType="com.asuka.backend.pojo.vo.IssueBriefVO">
+        SELECT id              AS issue_id,
+               title           AS title,
+               category        AS category,
+               severity        AS severity,
+               confidence      AS confidence,
+               start_line      AS start_line,
+               end_line        AS end_line,
+               feedback_status AS feedback_status
+        FROM review_issue
+        WHERE task_id = #{taskId}
+          AND file_id = #{fileId}
+        ORDER BY severity DESC, id ASC
+    </select>
+
+    <!-- 导出 Markdown：一次取全量问题，避免逐条查询 -->
+    <select id="selectForExport" resultType="com.asuka.backend.pojo.dto.IssueExportRow">
+        SELECT i.id                AS issue_id,
+               i.title             AS title,
+               i.category          AS category,
+               i.severity          AS severity,
+               i.confidence        AS confidence,
+               f.file_path         AS file_path,
+               i.start_line        AS start_line,
+               i.end_line          AS end_line,
+               i.trigger_condition AS trigger_condition,
+               i.impact            AS impact,
+               i.evidence          AS evidence,
+               i.suggestion        AS suggestion,
+               i.feedback_status   AS feedback_status,
+               i.feedback_remark   AS feedback_remark
+        FROM review_issue i
+                 LEFT JOIN task_file f ON f.id = i.file_id AND f.task_id = i.task_id
+        WHERE i.task_id = #{taskId}
+        ORDER BY i.severity DESC, i.id ASC
+    </select>
+
+</mapper>

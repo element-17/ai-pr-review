@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asuka.backend.mapper.TaskFileMapper">
+
+    <!--
+        覆盖统计：按文件分析状态分组。
+        status：1 待分析，2 已分析，3 已跳过，4 分析失败。
+    -->
+    <select id="countByStatus" resultType="com.asuka.backend.pojo.dto.StatusCountRow">
+        SELECT status,
+               COUNT(*) AS total
+        FROM task_file
+        WHERE task_id = #{taskId}
+        GROUP BY status
+    </select>
+
+    <!--
+        重点阅读文件：priority_reason 非空即重点文件，按关联问题数倒序。
+        报告级问题没有 file_id，不会被统计到具体文件。
+    -->
+    <select id="selectPriorityFiles" resultType="com.asuka.backend.pojo.vo.PriorityFileVO">
+        SELECT f.id             AS file_id,
+               f.file_path      AS file_path,
+               f.priority_reason AS priority_reason,
+               COUNT(i.id)      AS issue_count
+        FROM task_file f
+                 LEFT JOIN review_issue i ON i.file_id = f.id AND i.task_id = f.task_id
+        WHERE f.task_id = #{taskId}
+          AND f.priority_reason IS NOT NULL
+          AND f.priority_reason &lt;&gt; ''
+        GROUP BY f.id, f.file_path, f.priority_reason
+        ORDER BY issue_count DESC, f.id ASC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
