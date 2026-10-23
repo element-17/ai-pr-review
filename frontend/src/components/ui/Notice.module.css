@@ -1,0 +1,27 @@
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, var(--warning) 22%, transparent);
+  border-left: 2px solid var(--warning);
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: 2px;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 18px 0;
+  overflow-wrap: anywhere;
+}
+.notice > svg {
+  margin-top: 2px;
+}
+.notice.danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 22%, transparent);
+}
+.notice p {
+  margin: 4px 0 8px;
+  font-size: 12px;
+}

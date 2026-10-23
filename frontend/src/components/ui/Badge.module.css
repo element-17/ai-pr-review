@@ -1,0 +1,46 @@
+.badge {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  border-radius: 2px;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 5px 7px;
+  background: var(--surface-hover);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.badge-dot {
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-3,
+.feedback-2,
+.feedback-3,
+.fileStatus-2,
+.severity-1 {
+  background: var(--add-bg);
+  color: var(--positive);
+}
+.status-4,
+.status-1,
+.severity-2,
+.feedback-1,
+.fileStatus-3 {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.status-5,
+.severity-3,
+.severity-4,
+.fileStatus-4 {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.status-2 {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

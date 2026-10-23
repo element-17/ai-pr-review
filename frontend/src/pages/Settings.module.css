@@ -1,0 +1,23 @@
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 28px;
+  max-width: 1000px;
+}
+.settings-notice {
+  align-self: start;
+  background: var(--surface-hover);
+  color: var(--text);
+  border-top: 2px solid var(--ink);
+}
+.settings-notice h2 {
+  margin-top: 22px;
+}
+.settings-notice p {
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+}

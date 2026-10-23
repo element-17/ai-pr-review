@@ -1,0 +1,23 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 20px;
+  color: var(--muted);
+  font-size: 11px;
+  border-top: 1px solid var(--border);
+}
+.pagination :global(.actions) {
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .pagination {
+    flex-wrap: wrap;
+  }
+}
+.pagination.compact {
+  padding: 16px 10px;
+  flex-wrap: wrap;
+  gap: 12px;
+}

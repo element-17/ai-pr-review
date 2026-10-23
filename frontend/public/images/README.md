@@ -1,0 +1,10 @@
+# Review desk visual
+
+- Asset: `review-desk.webp` (WebP delivery copy; original generated PNG retained in Codex generated images)
+- Created with: built-in `image_gen` (2026-10-22)
+- Use: homepage editorial photograph and sign-in page visual.
+- This is decorative generated artwork, not a screenshot of a real repository or analysis result.
+
+## Generation prompt
+
+Use case: photorealistic-natural. Asset type: editorial photograph for the right-hand half of a serious developer code-review web application homepage. Create a visually arresting but understated real analog-film still life of a lived-in software engineer's review desk. Overhead with a slightly oblique angle, tightly art directed asymmetric framing. A cool brushed-aluminum laptop corner with dark code editor visible only as tiny soft illegible lines, a few ivory printed code-review pages with black monospaced lines and discreet red pen annotations, a short vermilion-orange carpenter pencil diagonally crossing the paper, one cobalt blue binder clip, and a plain dark ceramic espresso cup cropped at the upper edge. Paper occupies the central and lower frame, laptop is cropped at the left edge, plenty of tactile charcoal desk surface in the upper-right. Late-afternoon raking window light, crisp diagonal natural shadows, warm honey highlights against deep graphite and muted steel blues. Real paper fibers, subtle 35mm film grain, natural imperfections and quiet human presence through the arrangement, a considered photograph from an independent design magazine. Rich material variation, not flat or monochrome, natural photographic color. Vertical 4:5 composition suitable for crop into a tall rectangle in a web layout; all important objects sit away from the outer 12 percent edges. No people or hands, no logos, no readable text, no large typography, no watermark. Avoid 3D illustration, plastic render, floating objects, futuristic neon, glowing holograms, robot or AI motifs, cartoon artwork, stock-photo handshakes, perfect flat-lay symmetry, plants, decorative gradient backgrounds. The final should feel like an authentic photographed creative workspace, not an AI-generated SaaS hero.
