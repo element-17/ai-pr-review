@@ -1,5 +1,6 @@
 package com.asuka.backend.service.impl;
 
+import com.asuka.backend.common.exception.GitHubApiException;
 import com.asuka.backend.service.PrPreviewService;
 import com.asuka.backend.service.PullRequestService;
 import com.asuka.backend.service.RateLimitService;
@@ -55,7 +56,7 @@ public class PrPreviewServiceImpl implements PrPreviewService {
         GitHubPrResponse response;
         try {
             response = loadPullRequest(ref);
-        } catch (com.asuka.backend.common.exception.GitHubApiException ex) {
+        } catch (GitHubApiException ex) {
             throw GitHubErrorMapper.toBusinessException(ex);
         }
 

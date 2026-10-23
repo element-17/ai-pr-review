@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * DeepSeek OpenAI 兼容客户端。
@@ -62,7 +63,7 @@ public class DeepSeekClient implements ModelClient {
             request.setTemperature(properties.getTemperature());
         }
         if (request.getThinking() == null) {
-            request.setThinking(java.util.Map.of("type", "disabled"));
+            request.setThinking(Map.of("type", "disabled"));
         }
 
         long started = System.currentTimeMillis();
