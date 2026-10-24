@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
  * 系统用户。
  *
  * <p>password 标记为 select = false，普通 MP 查询不会带出密码；
- * 登录场景使用 SysUserMapper.selectByUsernameForLogin 显式查询。
+ * 登录场景使用 UserMapper.selectByUsernameForLogin 显式查询。
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("sys_user")
-@Schema(description = "系统用户")
-public class SysUser extends BaseEntity {
+@TableName("`user`")
+@Schema(description = "用户")
+public class User extends BaseEntity {
 
     @TableId(value = "id", type = IdType.AUTO)
     @Schema(description = "用户 ID")

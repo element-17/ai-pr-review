@@ -2,10 +2,10 @@
 -- 适用：MySQL 8.x / 9.x / InnoDB / utf8mb4
 --
 -- 账号模型说明：
---   当前骨架统一使用 sys_user 作为登录账号表，业务表 user_setting、analysis_task
---   的 user_id 外键都指向 sys_user.id。
---   如果数据库执行过旧版包含 user 表的脚本，请先执行
---   deploy/sql/migration-20261021-unify-sys-user.sql。
+--   当前骨架统一使用 user 作为登录账号表，业务表 user_setting、analysis_task
+--   的 user_id 外键都指向 user.id。
+--   如果数据库使用过旧版账号表，请先执行
+--   deploy/sql/migration-20261023-rename-sys-user-to-user.sql。
 --
 -- 脚本只创建不存在的表，不会删除已有数据；需要重置时请先备份再手动删表。
 
@@ -20,7 +20,7 @@ SET NAMES utf8mb4;
 -- ------------------------------------------------------------
 -- 1. 系统用户
 -- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `sys_user`
+CREATE TABLE IF NOT EXISTS `user`
 (
     `id`              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     `username`        VARCHAR(50)  NOT NULL COMMENT '登录名',
@@ -38,22 +38,22 @@ CREATE TABLE IF NOT EXISTS `sys_user`
     `create_user`     BIGINT                DEFAULT NULL COMMENT '创建人 ID',
     `update_user`     BIGINT                DEFAULT NULL COMMENT '更新人 ID',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_sys_user_username` (`username`),
-    KEY `idx_sys_user_status` (`status`),
-    KEY `idx_sys_user_role` (`role`),
-    KEY `idx_sys_user_create_time` (`create_time`)
+    UNIQUE KEY `uk_user_username` (`username`),
+    KEY `idx_user_status` (`status`),
+    KEY `idx_user_role` (`role`),
+    KEY `idx_user_create_time` (`create_time`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = '系统用户表';
 
 -- 种子账号：admin / admin123，demo / demo123
 -- 密码为 BCrypt 哈希，禁止在数据库中保存明文密码。
-INSERT INTO `sys_user` (`username`, `password`, `nickname`, `email`, `role`, `status`, `deleted`)
+INSERT INTO `user` (`username`, `password`, `nickname`, `email`, `role`, `status`, `deleted`)
 VALUES ('admin', '$2a$10$eDT7OPiDbAOrKEWKFS/AHOCZCL/xWPTVGOtGv/JOTKISDxSCeotYK',
         '系统管理员', 'admin@example.com', 'ADMIN', 1, 0)
 ON DUPLICATE KEY UPDATE `username` = `username`;
 
-INSERT INTO `sys_user` (`username`, `password`, `nickname`, `email`, `role`, `status`, `deleted`)
+INSERT INTO `user` (`username`, `password`, `nickname`, `email`, `role`, `status`, `deleted`)
 VALUES ('demo', '$2a$10$UP4ZnXtul2Wl9r.PIqb20.dKoeDdbFcN0s4ONPqrGts6UD4cxUH0q',
         '演示用户', 'demo@example.com', 'USER', 1, 0)
 ON DUPLICATE KEY UPDATE `username` = `username`;
@@ -63,7 +63,7 @@ ON DUPLICATE KEY UPDATE `username` = `username`;
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `user_setting`
 (
-    `user_id`          BIGINT        NOT NULL COMMENT '用户 ID，关联 sys_user.id',
+    `user_id`          BIGINT        NOT NULL COMMENT '用户 ID，关联 user.id',
     `theme`            TINYINT       NOT NULL DEFAULT 3 COMMENT '主题：1 浅色，2 深色，3 跟随系统',
     `language`         VARCHAR(10)   NOT NULL DEFAULT 'zh-CN' COMMENT '界面语言：zh-CN 中文，en-US 英文',
     `check_categories` VARCHAR(200)  NOT NULL DEFAULT '1,2,3,4,5,6' COMMENT '重点检查类别，逗号分隔：1 逻辑 2 边界 3 异常 4 权限 5 兼容 6 测试 7 其他',
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `user_setting`
     `create_time`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`user_id`),
-    CONSTRAINT `fk_setting_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_setting_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = '用户设置';
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
 (
     `id`              BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
     `pr_id`           BIGINT      NOT NULL COMMENT '关联 pull_request.id',
-    `user_id`         BIGINT      NULL COMMENT '提交用户 ID，关联 sys_user.id；游客任务为空',
+    `user_id`         BIGINT      NULL COMMENT '提交用户 ID，关联 user.id；游客任务为空',
     `head_sha`        CHAR(40)    NOT NULL COMMENT '本次分析对应的 head commit SHA',
     `report_language` VARCHAR(10) NOT NULL DEFAULT 'zh-CN' COMMENT '报告语言：zh-CN 中文，en-US 英文',
     `status`          TINYINT     NOT NULL DEFAULT 1 COMMENT '任务状态：1 排队，2 分析中，3 已完成，4 部分完成，5 失败，6 已取消',
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
     KEY `idx_expire_time` (`expire_time`),
     KEY `idx_retry_of_task` (`retry_of_task_id`),
     CONSTRAINT `fk_task_pr` FOREIGN KEY (`pr_id`) REFERENCES `pull_request` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT
+    CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = 'PR 分析任务';
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS `review_issue`
     `suggestion`        TEXT         NOT NULL COMMENT '当前建议，人工编辑后覆盖',
     `feedback_status`   TINYINT      NOT NULL DEFAULT 1 COMMENT '处理状态：1 待确认，2 已采纳，3 已解决，4 误报',
     `feedback_remark`   VARCHAR(500) NULL COMMENT '人工处理理由',
-    `feedback_user_id`  BIGINT       NULL COMMENT '最后反馈操作人 ID，关联 sys_user.id；游客为空',
+    `feedback_user_id`  BIGINT       NULL COMMENT '最后反馈操作人 ID，关联 user.id；游客为空',
     `feedback_time`     DATETIME     NULL COMMENT '最后反馈操作时间',
     `create_time`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `review_issue`
     KEY `idx_feedback_user` (`feedback_user_id`),
     CONSTRAINT `fk_issue_task` FOREIGN KEY (`task_id`) REFERENCES `analysis_task` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_issue_file` FOREIGN KEY (`file_id`) REFERENCES `task_file` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_issue_feedback_user` FOREIGN KEY (`feedback_user_id`) REFERENCES `sys_user` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_issue_feedback_user` FOREIGN KEY (`feedback_user_id`) REFERENCES `user` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = '评审问题与人工反馈';

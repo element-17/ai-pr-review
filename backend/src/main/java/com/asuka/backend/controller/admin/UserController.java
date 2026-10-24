@@ -7,7 +7,7 @@ import com.asuka.backend.common.result.Result;
 import com.asuka.backend.pojo.dto.UserCreateDTO;
 import com.asuka.backend.pojo.dto.UserQueryDTO;
 import com.asuka.backend.pojo.dto.UserUpdateDTO;
-import com.asuka.backend.service.SysUserService;
+import com.asuka.backend.service.UserService;
 import com.asuka.backend.pojo.vo.RoleCountVO;
 import com.asuka.backend.pojo.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,45 +44,45 @@ import java.util.List;
 @Validated
 @SaCheckRole(AuthConstant.ROLE_ADMIN)
 @SecurityRequirement(name = "sa-token")
-public class SysUserController {
+public class UserController {
 
-    private final SysUserService sysUserService;
+    private final UserService userService;
 
     @Operation(summary = "分页查询用户（MyBatis-Plus）", description = "常规单表条件分页")
     @GetMapping("/page")
     public Result<PageResult<UserVO>> page(@Valid UserQueryDTO query) {
-        return Result.success(sysUserService.page(query));
+        return Result.success(userService.page(query));
     }
 
     @Operation(summary = "复杂条件查询用户（原生 XML）", description = "关键字同时匹配用户名、昵称、邮箱")
     @GetMapping("/search")
     public Result<PageResult<UserVO>> search(@Valid UserQueryDTO query) {
-        return Result.success(sysUserService.nativePage(query));
+        return Result.success(userService.nativePage(query));
     }
 
     @Operation(summary = "用户详情")
     @GetMapping("/{id}")
     public Result<UserVO> detail(@Parameter(description = "用户 ID") @PathVariable Long id) {
-        return Result.success(sysUserService.getDetail(id));
+        return Result.success(userService.getDetail(id));
     }
 
     @Operation(summary = "新增用户")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody UserCreateDTO dto) {
-        return Result.success(sysUserService.createUser(dto));
+        return Result.success(userService.createUser(dto));
     }
 
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO dto) {
-        sysUserService.updateUser(id, dto);
+        userService.updateUser(id, dto);
         return Result.success();
     }
 
     @Operation(summary = "删除用户", description = "逻辑删除，不会物理删除数据")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        sysUserService.deleteUser(id);
+        userService.deleteUser(id);
         return Result.success();
     }
 
@@ -92,13 +92,13 @@ public class SysUserController {
             @PathVariable Long id,
             @RequestParam @Min(value = 0, message = "状态只能是 0 或 1")
             @Max(value = 1, message = "状态只能是 0 或 1") Integer status) {
-        sysUserService.changeStatus(id, status);
+        userService.changeStatus(id, status);
         return Result.success();
     }
 
     @Operation(summary = "按角色统计用户数量", description = "原生 SQL GROUP BY 示例")
     @GetMapping("/stats/roles")
     public Result<List<RoleCountVO>> roleStats() {
-        return Result.success(sysUserService.roleStats());
+        return Result.success(userService.roleStats());
     }
 }

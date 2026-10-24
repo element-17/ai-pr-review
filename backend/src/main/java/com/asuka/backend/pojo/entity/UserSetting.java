@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 /**
  * 用户设置。
  *
- * <p>主键直接使用 user_id，与 sys_user 一对一。
+ * <p>主键直接使用 user_id，与 user 一对一。
  * check_categories、ignore_dirs 用逗号分隔存储，读取时转换成数组。
  */
 @Data

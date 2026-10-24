@@ -69,7 +69,7 @@ public class AnalysisTask implements Serializable {
 
     /**
      * 逻辑删除标记。
-     * 表列名是 is_deleted，与 sys_user 的 deleted 不同，这里显式指定列名。
+     * 表列名是 is_deleted，与 user 的 deleted 不同，这里显式指定列名。
      */
     @TableLogic
     @TableField("is_deleted")
