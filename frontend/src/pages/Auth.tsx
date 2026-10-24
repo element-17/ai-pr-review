@@ -38,9 +38,14 @@ export default function Auth({
     if (!register || busy || !(input instanceof HTMLInputElement)) return
     setError(null)
     const field = registrationFields.find(field => field === input.name)
-    if (!field || (!reveal && !(field in validation))) return
+    if (!field || (!reveal && !(field in validation) && !(field === 'password' && 'confirmPassword' in validation))) return
     const { errors } = validateRegistration(event.currentTarget)
-    setValidation(previous => ({ ...previous, [field]: errors[field] }))
+    setValidation(previous => {
+      const next = { ...previous }
+      if (reveal || field in previous) next[field] = errors[field]
+      if (field === 'password' && 'confirmPassword' in previous) next.confirmPassword = errors.confirmPassword
+      return next
+    })
   }
   /** 接收注册字段名；返回提示和错误的关联 ID 字符串，登录模式返回 undefined。 */
   function describedBy(field: RegistrationField) {
@@ -155,6 +160,20 @@ export default function Auth({
             </label>
             {register && (
               <>
+                <label className="field">
+                  <span id="auth-confirm-password-label">{t('confirmPassword')}</span>
+                  <input
+                    name="confirmPassword"
+                    aria-labelledby="auth-confirm-password-label"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    maxLength={registrationLimits.password.max}
+                    aria-invalid={!!validation.confirmPassword}
+                    aria-describedby={describedBy('confirmPassword')}
+                  />
+                  {fieldFeedback('confirmPassword', 'registerConfirmPasswordHint')}
+                </label>
                 <label className="field">
                   <span id="auth-nickname-label">{t('nickname')}</span>
                   <input

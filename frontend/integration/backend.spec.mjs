@@ -67,6 +67,7 @@ test.describe.serial('真实后端联调（不拦截或模拟 API）', () => {
     await page.goto('/register?returnTo=%2F')
     await page.getByLabel(zh.username, { exact: true }).fill(username)
     await page.getByLabel(zh.password, { exact: true }).fill(password)
+    await page.getByLabel(zh.confirmPassword, { exact: true }).fill(password)
     await page.getByRole('button', { name: zh.register, exact: true }).click()
     await expect(page).toHaveURL(/\/login\?registered=1/)
     await page.getByLabel(zh.username, { exact: true }).fill(username)

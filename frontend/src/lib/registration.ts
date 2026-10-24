@@ -9,7 +9,7 @@ export const registrationLimits = {
   phone: { max: 11 },
 } as const
 
-export const registrationFields = ['username', 'password', 'nickname', 'email', 'phone'] as const
+export const registrationFields = ['username', 'password', 'confirmPassword', 'nickname', 'email', 'phone'] as const
 export type RegistrationField = typeof registrationFields[number]
 export type RegistrationErrors = Partial<Record<RegistrationField, MessageKey>>
 
@@ -24,6 +24,7 @@ export function validateRegistration(form: HTMLFormElement) {
     email: String(data.get('email') ?? '').trim(),
     phone: String(data.get('phone') ?? '').trim(),
   }
+  const confirmPassword = String(data.get('confirmPassword') ?? '')
   const errors: RegistrationErrors = {}
   if (!values.username) errors.username = 'usernameRequired'
   else if (values.username.length < registrationLimits.username.min || values.username.length > registrationLimits.username.max) errors.username = 'usernameLength'
@@ -31,6 +32,9 @@ export function validateRegistration(form: HTMLFormElement) {
 
   if (!values.password.trim()) errors.password = 'passwordRequired'
   else if (values.password.length < registrationLimits.password.min || values.password.length > registrationLimits.password.max) errors.password = 'registerPasswordLength'
+
+  if (!confirmPassword) errors.confirmPassword = 'confirmPasswordRequired'
+  else if (confirmPassword !== values.password) errors.confirmPassword = 'passwordMismatch'
 
   if (values.nickname.length > registrationLimits.nickname.max) errors.nickname = 'nicknameLength'
   if (values.email.length > registrationLimits.email.max) errors.email = 'emailLength'
