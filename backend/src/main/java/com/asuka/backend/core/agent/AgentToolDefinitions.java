@@ -14,11 +14,13 @@ import java.util.Map;
  */
 public final class AgentToolDefinitions {
 
+    /** 单批最多提交的问题数，避免模型一次输出过多导致 max_tokens 截断 */
+    public static final int MAX_ISSUES_PER_BATCH = 5;
+
     public static List<ModelTool> summaryTools() {
-        List<ModelTool> tools = new ArrayList<>();
-        tools.add(readFileTool());
-        tools.add(submitSummaryTool());
-        return tools;
+        // 总结阶段的 prompt 已经包含 PR 元数据和分批 patch，不需要再读文件。
+        // 只暴露提交工具，避免模型把轮次/工具预算花在探索文件上而不提交。
+        return List.of(submitSummaryTool());
     }
 
     public static List<ModelTool> issueTools() {
@@ -91,9 +93,15 @@ public final class AgentToolDefinitions {
                 List.of("title", "category", "severity", "confidence",
                         "triggerCondition", "impact", "suggestion"));
 
+        Map<String, Object> issuesArray = new LinkedHashMap<>();
+        issuesArray.put("type", "array");
+        issuesArray.put("items", issueSchema);
+        issuesArray.put("maxItems", MAX_ISSUES_PER_BATCH);
+        issuesArray.put("description", "Candidate issues for this batch (max "
+                + MAX_ISSUES_PER_BATCH + ")");
+
         Map<String, Object> properties = new LinkedHashMap<>();
-        properties.put("issues", Map.of("type", "array", "items", issueSchema,
-                "description", "Candidate issues for this batch"));
+        properties.put("issues", issuesArray);
         return tool("submit_issues", "Submit candidate review issues for this batch. Call exactly once.",
                 objectSchema(properties, List.of("issues")));
     }

@@ -43,6 +43,17 @@ public class AgentExecutor {
                            String userPrompt,
                            List<ModelTool> tools,
                            Set<String> terminalTools) {
+        if (terminalTools == null || terminalTools.isEmpty()) {
+            throw new AgentException("缺少提交工具");
+        }
+        String terminalTool = terminalTools.iterator().next();
+        List<ModelTool> terminalOnly = tools.stream()
+                .filter(tool -> tool.getFunction() != null && terminalTools.contains(tool.getFunction().getName()))
+                .toList();
+        if (terminalOnly.isEmpty()) {
+            throw new AgentException("工具列表中缺少提交工具：" + terminalTool);
+        }
+
         List<ModelMessage> messages = new ArrayList<>();
         messages.add(ModelMessage.system(systemPrompt));
         messages.add(ModelMessage.user(userPrompt));
@@ -52,12 +63,28 @@ public class AgentExecutor {
         int turns = 0;
         int toolCalls = 0;
         boolean reminded = false;
+        boolean forced = false;
 
-        while (turns < maxTurns) {
+        while (true) {
+            boolean budgetExhausted = turns >= maxTurns || toolCalls >= maxToolCalls;
+            if (budgetExhausted && !forced) {
+                forced = true;
+                messages.add(ModelMessage.system(forceSubmitPrompt(terminalTool, context.getStage())));
+                log.warn("agent 预算耗尽，强制提交：stage={}, turns={}, toolCalls={}, terminal={}",
+                        context.getStage(), turns, toolCalls, terminalTool);
+            }
+
             ModelRequest request = new ModelRequest();
             request.setModel(aiProperties.getDeepseek().getModel());
             request.setMessages(new ArrayList<>(messages));
-            request.setTools(tools);
+            // 最后一次机会只暴露提交工具，并用 tool_choice 强制模型调用它。
+            request.setTools(forced ? terminalOnly : tools);
+            if (forced) {
+                request.setToolChoice(Map.of(
+                        "type", "function",
+                        "function", Map.of("name", terminalTool)
+                ));
+            }
             request.setMaxTokens(aiProperties.getDeepseek().getMaxTokens());
             request.setTemperature(aiProperties.getDeepseek().getTemperature());
             request.setStage(context.getStage());
@@ -76,13 +103,20 @@ public class AgentExecutor {
             ModelResponse.Message message = response.getChoices().get(0).getMessage();
             List<ToolCall> calls = message.getToolCalls();
             if (calls == null || calls.isEmpty()) {
+                if (forced) {
+                    throw new AgentException("预算耗尽后模型仍未调用提交工具");
+                }
                 if (!reminded) {
                     messages.add(ModelMessage.assistant(message.getContent(), null));
                     messages.add(ModelMessage.system("You must call the required submit tool now."));
                     reminded = true;
                     continue;
                 }
-                throw new AgentException("模型未调用提交工具");
+                forced = true;
+                messages.add(ModelMessage.system(forceSubmitPrompt(terminalTool, context.getStage())));
+                log.warn("agent 多次未调用提交工具，强制提交：stage={}, turns={}, toolCalls={}, terminal={}",
+                        context.getStage(), turns, toolCalls, terminalTool);
+                continue;
             }
 
             messages.add(ModelMessage.assistant(message.getContent(), calls));
@@ -93,16 +127,30 @@ public class AgentExecutor {
                     log.info("agent 完成：stage={}, turns={}, toolCalls={}", context.getStage(), turns, toolCalls);
                     return new AgentSubmission(name, arguments, turns, toolCalls);
                 }
-
-                toolCalls++;
-                if (toolCalls > maxToolCalls) {
-                    throw new AgentException("工具调用次数超限");
+                if (forced) {
+                    throw new AgentException("预算耗尽后模型调用了非提交工具：" + name);
                 }
+                if (toolCalls >= maxToolCalls) {
+                    messages.add(ModelMessage.tool(call.getId(),
+                            "Skipped: tool budget exhausted. Submit your best-effort result now."));
+                    continue;
+                }
+                toolCalls++;
                 String result = toolRegistry.execute(name, arguments, context);
                 messages.add(ModelMessage.tool(call.getId(), result));
             }
         }
-        throw new AgentException("模型轮次超限");
+    }
+
+    private String forceSubmitPrompt(String terminalTool, String stage) {
+        String limit = "issues".equals(stage)
+                ? " Return at most " + AgentToolDefinitions.MAX_ISSUES_PER_BATCH
+                + " issues for this batch and keep each field concise."
+                : "";
+        return "The tool/turn budget is exhausted. Do not call any other tool. "
+                + "You must call " + terminalTool
+                + " now with the best-effort structured result using the information already provided."
+                + limit;
     }
 
     private Map<String, Object> parseArguments(ToolCall call) {

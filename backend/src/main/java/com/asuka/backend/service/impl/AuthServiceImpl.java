@@ -10,10 +10,10 @@ import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.pojo.dto.LoginDTO;
 import com.asuka.backend.pojo.dto.RegisterDTO;
 import com.asuka.backend.pojo.dto.UserCreateDTO;
-import com.asuka.backend.pojo.entity.SysUser;
-import com.asuka.backend.mapper.SysUserMapper;
+import com.asuka.backend.pojo.entity.User;
+import com.asuka.backend.mapper.UserMapper;
 import com.asuka.backend.service.AuthService;
-import com.asuka.backend.service.SysUserService;
+import com.asuka.backend.service.UserService;
 import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.pojo.vo.LoginVO;
 import com.asuka.backend.pojo.vo.UserInfoVO;
@@ -47,8 +47,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final SysUserMapper sysUserMapper;
-    private final SysUserService sysUserService;
+    private final UserMapper userMapper;
+    private final UserService userService;
     private final UserSettingService userSettingService;
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
         // 登录前先检查失败次数，避免已经锁定后还继续查库/比对密码
         checkLoginFail(username);
 
-        SysUser user = sysUserMapper.selectByUsernameForLogin(username);
+        User user = userMapper.selectByUsernameForLogin(username);
         if (user == null || !BCrypt.checkpw(dto.getPassword(), user.getPassword())) {
             // 用户名不存在和密码错误统一提示，避免泄露账号是否存在
             recordLoginFail(username);
@@ -116,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
         stringRedisTemplate.delete(refreshKey);
         stringRedisTemplate.opsForSet().remove(AuthConstant.REFRESH_TOKEN_USER_KEY_PREFIX + userId, refreshToken);
 
-        SysUser user = sysUserMapper.selectById(userId);
+        User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(401, "用户不存在，请重新登录");
         }
@@ -145,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserInfoVO currentUser() {
         Long userId = StpUtil.getLoginIdAsLong();
-        SysUser user = sysUserMapper.selectById(userId);
+        User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(401, "用户不存在，请重新登录");
         }
@@ -161,7 +161,7 @@ public class AuthServiceImpl implements AuthService {
         UserCreateDTO createDTO = new UserCreateDTO();
         BeanUtils.copyProperties(dto, createDTO);
         createDTO.setRole(AuthConstant.ROLE_USER);
-        Long userId = sysUserService.createUser(createDTO);
+        Long userId = userService.createUser(createDTO);
         // 注册时同步初始化默认设置，避免第一次打开设置页时出现空状态
         userSettingService.initDefault(userId);
     }
@@ -170,7 +170,7 @@ public class AuthServiceImpl implements AuthService {
      * Sa-Token 登录：timeout 使用全局配置，默认 1800 秒。
      * 登录后把角色放入 Session，StpInterfaceImpl 读取该角色做权限判断。
      */
-    private void doLogin(SysUser user) {
+    private void doLogin(User user) {
         long timeout = SaManager.getConfig().getTimeout();
         StpUtil.login(user.getId(), new SaLoginModel().setTimeout(timeout));
         StpUtil.getSession().set("role", user.getRole());
@@ -246,13 +246,13 @@ public class AuthServiceImpl implements AuthService {
      * 更新最后登录时间。只构造 id + lastLoginTime，避免覆盖其他字段。
      */
     private void updateLastLoginTime(Long userId) {
-        SysUser update = new SysUser();
+        User update = new User();
         update.setId(userId);
         update.setLastLoginTime(LocalDateTime.now());
-        sysUserMapper.updateById(update);
+        userMapper.updateById(update);
     }
 
-    private LoginVO buildLoginVO(SysUser user, String accessToken, String refreshToken) {
+    private LoginVO buildLoginVO(User user, String accessToken, String refreshToken) {
         long expiresIn = SaManager.getConfig().getTimeout();
         if (expiresIn <= 0) {
             expiresIn = 1800;
@@ -266,7 +266,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private UserInfoVO toUserInfo(SysUser user) {
+    private UserInfoVO toUserInfo(User user) {
         return UserInfoVO.builder()
                 .id(user.getId())
                 .username(user.getUsername())

@@ -19,7 +19,7 @@
    mysql -u root -p < src/main/resources/db/schema.sql
    ```
 
-   脚本会创建 `sys_user` 表，并写入两个本地种子账号：
+   脚本会创建 `user` 表，并写入两个本地种子账号：
 
    - `admin / admin123`（ADMIN）
    - `demo / demo123`（USER）
@@ -106,7 +106,7 @@ Authorization: Bearer <accessToken>
 - 无模型 Key 时可设置 `pr.ai.provider=fake`，用确定性 fake client 验证 agent 工具循环和报告链路；`pr.ai.stub-pipeline=true` 只用于状态机测试。
 - 游客创建任务每 IP 每小时 5 次；预览每 IP 每分钟 30 次；创建/重试支持 `Idempotency-Key`，TTL 10 分钟。
 - 服务重启后，排队任务重新投递，运行中任务标记失败 `errorCode=8`。
-- 数据库账号模型已统一为 `sys_user`，旧库迁移脚本：`deploy/sql/migration-20261021-unify-sys-user.sql`。
+- 数据库账号模型已统一为 `user`，旧库迁移脚本：`deploy/sql/migration-20261023-rename-sys-user-to-user.sql`。
 - 任务重试字段迁移脚本：`deploy/sql/migration-20261022-retry-of-task.sql`。
 
 ## AI 分析

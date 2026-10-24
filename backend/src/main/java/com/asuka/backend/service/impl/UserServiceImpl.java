@@ -9,9 +9,9 @@ import com.asuka.backend.common.result.PageResult;
 import com.asuka.backend.pojo.dto.UserCreateDTO;
 import com.asuka.backend.pojo.dto.UserQueryDTO;
 import com.asuka.backend.pojo.dto.UserUpdateDTO;
-import com.asuka.backend.pojo.entity.SysUser;
-import com.asuka.backend.mapper.SysUserMapper;
-import com.asuka.backend.service.SysUserService;
+import com.asuka.backend.pojo.entity.User;
+import com.asuka.backend.mapper.UserMapper;
+import com.asuka.backend.service.UserService;
 import com.asuka.backend.pojo.vo.RoleCountVO;
 import com.asuka.backend.pojo.vo.UserVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -39,47 +39,47 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     /**
      * 常规分页：使用 MP 条件构造器 + 分页插件。
      */
     @Override
     public PageResult<UserVO> page(UserQueryDTO query) {
-        Page<SysUser> page = new Page<>(query.getPage(), query.getPageSize());
+        Page<User> page = new Page<>(query.getPage(), query.getPageSize());
 
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         // 关键字只做 OR 组合，外层由 MP 自动加上 deleted = 0
         wrapper.and(StringUtils.hasText(query.getKeyword()), w -> w
-                .like(SysUser::getUsername, query.getKeyword())
+                .like(User::getUsername, query.getKeyword())
                 .or()
-                .like(SysUser::getNickname, query.getKeyword())
+                .like(User::getNickname, query.getKeyword())
                 .or()
-                .like(SysUser::getEmail, query.getKeyword()));
-        wrapper.eq(query.getStatus() != null, SysUser::getStatus, query.getStatus());
-        wrapper.eq(StringUtils.hasText(query.getRole()), SysUser::getRole, query.getRole());
-        wrapper.orderByDesc(SysUser::getCreateTime).orderByDesc(SysUser::getId);
+                .like(User::getEmail, query.getKeyword()));
+        wrapper.eq(query.getStatus() != null, User::getStatus, query.getStatus());
+        wrapper.eq(StringUtils.hasText(query.getRole()), User::getRole, query.getRole());
+        wrapper.orderByDesc(User::getCreateTime).orderByDesc(User::getId);
 
-        Page<SysUser> result = this.page(page, wrapper);
+        Page<User> result = this.page(page, wrapper);
         List<UserVO> records = result.getRecords().stream().map(this::toVO).toList();
         return new PageResult<>(result.getTotal(), records);
     }
 
     /**
-     * 复杂分页：SQL 写在 SysUserMapper.xml，分页仍由 MP 插件完成。
+     * 复杂分页：SQL 写在 UserMapper.xml，分页仍由 MP 插件完成。
      * 适合关键字同时匹配多个字段、后续需要加索引提示或复杂排序的场景。
      */
     @Override
     public PageResult<UserVO> nativePage(UserQueryDTO query) {
-        Page<SysUser> page = new Page<>(query.getPage(), query.getPageSize());
-        IPage<SysUser> result = baseMapper.selectUserPage(page, query);
+        Page<User> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<User> result = baseMapper.selectUserPage(page, query);
         List<UserVO> records = result.getRecords().stream().map(this::toVO).toList();
         return new PageResult<>(result.getTotal(), records);
     }
 
     @Override
     public UserVO getDetail(Long id) {
-        SysUser user = getById(id);
+        User user = getById(id);
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
         }
@@ -89,12 +89,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public Long createUser(UserCreateDTO dto) {
         // 先做一次友好提示；数据库唯一索引仍是最终兜底
-        long count = lambdaQuery().eq(SysUser::getUsername, dto.getUsername()).count();
+        long count = lambdaQuery().eq(User::getUsername, dto.getUsername()).count();
         if (count > 0) {
             throw new BusinessException(400, "用户名已存在");
         }
 
-        SysUser user = new SysUser();
+        User user = new User();
         BeanUtils.copyProperties(dto, user);
         // 密码必须加密存储，禁止明文落库
         user.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt()));
@@ -111,7 +111,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void updateUser(Long id, UserUpdateDTO dto) {
-        SysUser user = getById(id);
+        User user = getById(id);
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
         }
@@ -147,7 +147,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(400, "不能删除当前登录用户");
         }
 
-        // removeById 执行逻辑删除：UPDATE sys_user SET deleted = 1 WHERE id = ? AND deleted = 0
+        // removeById 执行逻辑删除：UPDATE user SET deleted = 1 WHERE id = ? AND deleted = 0
         boolean removed = removeById(id);
         if (!removed) {
             throw new BusinessException(404, "用户不存在或已删除");
@@ -156,7 +156,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void changeStatus(Long id, Integer status) {
-        SysUser update = new SysUser();
+        User update = new User();
         update.setId(id);
         update.setStatus(status);
 
@@ -175,7 +175,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     /**
      * 实体转 VO，避免把 password、deleted 等内部字段返回给前端。
      */
-    private UserVO toVO(SysUser user) {
+    private UserVO toVO(User user) {
         UserVO vo = new UserVO();
         BeanUtils.copyProperties(user, vo);
         return vo;

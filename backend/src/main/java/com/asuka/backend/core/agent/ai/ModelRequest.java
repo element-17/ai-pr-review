@@ -19,8 +19,9 @@ public class ModelRequest {
 
     private List<ModelTool> tools;
 
+    /** "auto" 或 OpenAI 兼容的强制函数对象 {"type":"function","function":{"name":"..."}} */
     @JsonProperty("tool_choice")
-    private String toolChoice = "auto";
+    private Object toolChoice = "auto";
 
     @JsonProperty("max_tokens")
     private Integer maxTokens;

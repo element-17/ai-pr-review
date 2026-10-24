@@ -4,7 +4,7 @@ import com.asuka.backend.common.result.PageResult;
 import com.asuka.backend.pojo.dto.UserCreateDTO;
 import com.asuka.backend.pojo.dto.UserQueryDTO;
 import com.asuka.backend.pojo.dto.UserUpdateDTO;
-import com.asuka.backend.pojo.entity.SysUser;
+import com.asuka.backend.pojo.entity.User;
 import com.asuka.backend.pojo.vo.RoleCountVO;
 import com.asuka.backend.pojo.vo.UserVO;
 import com.baomidou.mybatisplus.spring.service.IService;
@@ -17,7 +17,7 @@ import java.util.List;
  * <p>继承 IService 后，单表 CRUD 可以直接使用 save、updateById、
  * removeById、getById、page 等 MyBatis-Plus 方法。
  */
-public interface SysUserService extends IService<SysUser> {
+public interface UserService extends IService<User> {
 
     /**
      * MyBatis-Plus 分页：适合常规单表条件查询。

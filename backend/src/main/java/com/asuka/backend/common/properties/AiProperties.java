@@ -45,7 +45,8 @@ public class AiProperties {
         private String model = "deepseek-flash";
         private int connectTimeoutMs = 10000;
         private int readTimeoutMs = 180000;
-        private int maxTokens = 8192;
+        /** DeepSeek V4.1 Flash 的 1M 上下文下，网关实测可接受 128K 输出上限 */
+        private int maxTokens = 131072;
         private double temperature = 0.1;
     }
 }
