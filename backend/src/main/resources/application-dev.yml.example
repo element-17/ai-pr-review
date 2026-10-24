@@ -39,8 +39,9 @@ pr:
     deepseek:
       # 推荐用环境变量，不要把真实 Key 写进文件
       api-key: ${DEEPSEEK_API_KEY:}
-      base-url: https://api.commandcode.ai/provider/v1
-      model: deepseek/deepseek-v4.1-flash
+      # OpenAI 兼容服务的根路径；客户端会追加 /chat/completions，不要在这里带该后缀
+      base-url: ${PR_AI_DEEPSEEK_BASE_URL:https://api.commandcode.ai/provider/v1}
+      model: ${PR_AI_DEEPSEEK_MODEL:deepseek/deepseek-v4.1-flash}
       connect-timeout-ms: 10000
       read-timeout-ms: 180000
       # 输出 token 上限；V4.1 Flash 的 1M 上下文下网关实测可接受 128K
