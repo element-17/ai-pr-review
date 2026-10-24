@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Auth.module.css'
+import styles from './Auth.module.scss'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { api } from '../lib/api'
@@ -18,6 +18,7 @@ import type { MessageKey } from '../i18n/types'
 import type { Session, Settings } from '../lib/types'
 import { ErrorNotice, Icon, Link, Notice } from '../components/ui'
 
+/** 接收注册模式标记和查询串；返回带校验、错误提示及返回路径的登录或注册页面节点。 */
 export default function Auth({
   register,
   search,
@@ -31,6 +32,7 @@ export default function Auth({
   const [validation, setValidation] = useState<RegistrationErrors>({})
   const params = new URLSearchParams(search)
   const returnTo = safeReturnPath(params.get('returnTo'))
+  /** 接收表单事件和首次显示错误标记；按需更新对应注册字段错误，无返回值。 */
   function validateField(event: FormEvent<HTMLFormElement>, reveal = false) {
     const input = event.target
     if (!register || busy || !(input instanceof HTMLInputElement)) return
@@ -40,9 +42,11 @@ export default function Auth({
     const { errors } = validateRegistration(event.currentTarget)
     setValidation(previous => ({ ...previous, [field]: errors[field] }))
   }
+  /** 接收注册字段名；返回提示和错误的关联 ID 字符串，登录模式返回 undefined。 */
   function describedBy(field: RegistrationField) {
     return register ? `register-${field}-hint${validation[field] ? ` register-${field}-error` : ''}` : undefined
   }
+  /** 接收注册字段名和提示翻译键；返回字段说明与错误节点，登录模式返回 null。 */
   function fieldFeedback(field: RegistrationField, hint: MessageKey) {
     if (!register) return null
     return (
@@ -52,6 +56,7 @@ export default function Auth({
       </>
     )
   }
+  /** 接收表单提交事件；校验后注册或登录并导航，登录时保存会话，返回 Promise<void>。 */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return

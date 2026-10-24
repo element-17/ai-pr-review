@@ -1,0 +1,237 @@
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #2c2d29;
+  background: #f3f0e9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --bg: #f3f0e9;
+  --surface: #fcfaf6;
+  --surface-hover: #eae7de;
+  --text: #2c2d29;
+  --muted: #74736b;
+  --border: #d8d5cb;
+  --accent: #b6442d;
+  --accent-soft: #f1e4da;
+  --ink: #2a2d28;
+  --on-ink: #fcfaf6;
+  --positive: #416653;
+  --warning: #86611d;
+  --warning-bg: #f6eddb;
+  --danger: #b63e43;
+  --danger-bg: #fdf0ef;
+  --add-bg: #eaf7ef;
+  --delete-bg: #fceeee;
+  --code-keyword: #7359a3;
+  --code-string: #257355;
+  --code-number: #a2622d;
+  color-scheme: light;
+
+  &[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: #20211e;
+    --surface: #282a25;
+    --surface-hover: #343730;
+    --text: #e9e5d9;
+    --muted: #b2b1a4;
+    --border: #44473e;
+    --accent: #ed9a75;
+    --accent-soft: #43332a;
+    --ink: #e9e5d9;
+    --on-ink: #20211e;
+    --positive: #9dc6aa;
+    --warning: #e2bf79;
+    --warning-bg: #393122;
+    --danger: #f29b9d;
+    --danger-bg: #3b292b;
+    --add-bg: #213d2e;
+    --delete-bg: #402a2b;
+    --code-keyword: #c7aff7;
+    --code-string: #9ad7b3;
+    --code-number: #e6b28b;
+    color: var(--text);
+    background: var(--bg);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 360px;
+  background-color: var(--bg);
+  color: var(--text);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.035'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Cpath fill='%23000' filter='url(%23paper)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+select,
+input[type='checkbox'] {
+  cursor: pointer;
+}
+
+button:disabled,
+fieldset:disabled button,
+select:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+button {
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  outline-offset: 4px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 28px;
+  letter-spacing: -.8px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 650;
+  margin-bottom: 20px;
+}
+
+h3 {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 600;
+  margin-bottom: 9px;
+}
+
+p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+code,
+pre {
+  font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+}
+
+code {
+  font-size: .88em;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 22px 0;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+input,
+select,
+textarea {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 11px 12px;
+  min-width: 0;
+  width: 100%;
+  transition: border-color .15s;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--muted);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+input {
+  &[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+
+select {
+  font-size: 13px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

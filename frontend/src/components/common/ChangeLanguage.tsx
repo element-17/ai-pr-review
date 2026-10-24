@@ -1,6 +1,7 @@
 import useTranslation from '../../i18n/useTranslation'
 import type { Language } from '../../i18n/types'
-import styles from './ChangeLanguage.module.css'
+import styles from './ChangeLanguage.module.scss'
+/** 接收语言切换回调和禁用标记；返回中英文切换按钮节点。 */
 function ChangeLanguage({
   changeLanguage,
   disabled = false,

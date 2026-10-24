@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Tasks.module.css'
+import styles from './Tasks.module.scss'
 import { useState } from 'react'
 import { query } from '../lib/api'
 import { navigate, useResource, useSession } from '../hooks'
@@ -19,6 +19,7 @@ import {
   ResourceState,
 } from '../components/ui'
 
+/** 接收筛选查询串；返回登录用户的任务筛选与分页列表，游客显示登录提示节点。 */
 export default function Tasks({ search }: { search: string }) {
   const { t } = usePreferences()
   const session = useSession()
@@ -32,6 +33,7 @@ export default function Tasks({ search }: { search: string }) {
       ? `/tasks${query({ repo: params.get('repo') || '', prNumber: params.get('prNumber') || '', status: params.get('status') || '', startDate: params.get('startDate') || '', endDate: params.get('endDate') || '', sort: params.get('sort') || 'createTime_desc', page, pageSize: 20 })}`
       : null,
   )
+  /** 接收目标页码；保留筛选参数并导航到该页，无返回值。 */
   function changePage(value: number) {
     params.set('page', String(value))
     navigate(`/tasks?${params}`)

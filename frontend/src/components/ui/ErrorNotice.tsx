@@ -3,6 +3,7 @@ import { errorMessageKey } from '../../lib/errors'
 import { Notice } from './Notice'
 import { Link } from './Link'
 
+/** 接收错误和可选重试回调；返回本地化错误提示及适用的恢复操作节点。 */
 export function ErrorNotice({
   error,
   retry,

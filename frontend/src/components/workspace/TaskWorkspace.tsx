@@ -1,5 +1,5 @@
 import { classNames } from '../../lib/classNames'
-import styles from './TaskWorkspace.module.css'
+import styles from './TaskWorkspace.module.scss'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { analysisEnabled, api, deletionEnabled, query } from '../../lib/api'
@@ -21,6 +21,7 @@ import {
   ResourceState,
 } from '../ui'
 
+/** 接收任务 ID、游客令牌、当前标签和内容渲染函数；返回带进度、操作及子页面的任务工作台节点。 */
 export default function TaskWorkspace({
   taskId,
   guestToken,
@@ -47,8 +48,10 @@ export default function TaskWorkspace({
   const reloadTask = resource.reload
   const isRunning = !!task && [1, 2].includes(task.status)
   const { progress, error: pollError, retry: retryPolling } = useTaskProgress(taskId, isRunning, guestToken, reloadTask)
+  /** 接收可选路径后缀和查询参数；返回默认携带当前游客令牌的任务地址。 */
   const taskPath: WorkspaceProps['taskPath'] = (suffix = '', params = {}) =>
     `/tasks/${taskId}${suffix}${query({ guestToken: guestToken || undefined, ...params })}`
+  /** 接收导出、取消、重试或删除类型；执行操作并更新界面或导航，返回 Promise<void>。 */
   async function action(type: 'export' | 'cancel' | 'retry' | 'delete') {
     if (type === 'delete' && !window.confirm(t('deleteConfirm'))) return
     setBusy(true)

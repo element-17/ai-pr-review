@@ -1,5 +1,5 @@
 import { classNames } from '../../lib/classNames'
-import styles from './DiffViewer.module.css'
+import styles from './DiffViewer.module.scss'
 import { useEffect, useRef, useState } from 'react'
 import { splitDiff, toDiffLines } from '../../lib/diff'
 import type { DiffLine } from '../../lib/diff'
@@ -15,6 +15,7 @@ const scrollPositions = new Map<
   { top: number; left: number; visible: number }
 >()
 
+/** 接收文件 Diff、视图模式、可选定位行及导航信息；返回支持分批展开和问题跳转的 Diff 节点。 */
 export default function DiffViewer({
   file,
   view,
@@ -74,6 +75,7 @@ export default function DiffViewer({
         })
     }
   }, [key, focusLine])
+  /** 接收 Diff 行；返回关联问题，删除文件按旧行号范围匹配。 */
   function markers(line: DiffLine): Issue[] {
     if (file.changeType !== 3)
       return file.issues.filter((issue) => line.issueIds.includes(issue.issueId))
@@ -88,6 +90,7 @@ export default function DiffViewer({
         number <= (issue.endLine || issue.startLine),
     )
   }
+  /** 接收 Diff 行；返回该行关联问题的跳转链接节点数组。 */
   function issueLinks(line: DiffLine) {
     return markers(line).map((issue) => (
       <Link
@@ -104,12 +107,14 @@ export default function DiffViewer({
       </Link>
     ))
   }
+  /** 接收 Diff 行；返回其有效侧行号是否等于目标定位行。 */
   function focused(line: DiffLine) {
     return (
       !!focusLine &&
       (file.changeType === 3 ? line.oldLine : line.newLine) === focusLine
     )
   }
+  /** 接收可空 Diff 行和新旧侧标记；返回并排视图的行号、代码及问题单元格节点。 */
   function cell(line: DiffLine | null, side: 'old' | 'new') {
     return (
       <>

@@ -12,16 +12,19 @@
   line-height: 1.8;
   margin: 18px 0;
   overflow-wrap: anywhere;
-}
-.notice > svg {
-  margin-top: 2px;
-}
-.notice.danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 22%, transparent);
-}
-.notice p {
-  margin: 4px 0 8px;
-  font-size: 12px;
+
+  > svg {
+    margin-top: 2px;
+  }
+
+  &.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 22%, transparent);
+  }
+
+  p {
+    margin: 4px 0 8px;
+    font-size: 12px;
+  }
 }

@@ -4,8 +4,9 @@ import { usePreferences } from '../../lib/preferences'
 import type { UserProfile } from '../../lib/types'
 import { DateText, ResourceState } from '../ui'
 import UserAvatar from './UserAvatar'
-import styles from './UserProfileDialog.module.css'
+import styles from './UserProfileDialog.module.scss'
 
+/** 接收关闭回调；请求当前用户资料并返回可关闭的模态对话框节点。 */
 export default function UserProfileDialog({ onClose }: { onClose: () => void }) {
   const { t } = usePreferences()
   const titleId = useId()
@@ -25,6 +26,7 @@ export default function UserProfileDialog({ onClose }: { onClose: () => void }) 
     }
   }, [])
   const user = profile.data
+  /** 接收可空资料文本；返回去除首尾空白的内容，空值返回“未提供”文案。 */
   const value = (text: string | null | undefined) => text?.trim() || t('notProvided')
   return (
     <dialog

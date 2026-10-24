@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { classNames } from '../../lib/classNames'
 import { usePreferences } from '../../lib/preferences'
 import { Icon } from '../ui'
-import styles from './SettingsNavigation.module.css'
+import styles from './SettingsNavigation.module.scss'
 
 const categories = [
   { id: 'settings-appearance', title: 'appearance', analysis: false },
@@ -13,6 +13,7 @@ const categories = [
 ] as const
 const localCategories = categories.filter(category => !category.analysis)
 
+/** 接收分析设置可用标记；返回跟随滚动高亮并可定位设置区域的导航节点。 */
 export default function SettingsNavigation({ analysisAvailable }: { analysisAvailable: boolean }) {
   const { t } = usePreferences()
   const sections = analysisAvailable ? categories : localCategories
@@ -30,6 +31,7 @@ export default function SettingsNavigation({ analysisAvailable }: { analysisAvai
   }, [active, sections])
   useEffect(() => {
     let frame = 0
+    /** 无参数；按当前滚动位置更新选中分类，无返回值。 */
     const update = () => {
       let current: string = sections[0].id
       for (const section of sections) {
@@ -43,12 +45,15 @@ export default function SettingsNavigation({ analysisAvailable }: { analysisAvai
       }
       setActive(current)
     }
+    /** 无参数；取消旧帧并在非主动定位期间安排高亮更新，无返回值。 */
     const schedule = () => {
       window.cancelAnimationFrame(frame)
       if (scrollingTo.current) return
       frame = window.requestAnimationFrame(update)
     }
+    /** 无参数；清除主动滚动目标以恢复位置跟踪，无返回值。 */
     const clearTarget = () => { scrollingTo.current = null }
+    /** 无参数；窗口尺寸变化时解除定位并安排高亮更新，无返回值。 */
     const resize = () => { clearTarget(); schedule() }
     schedule()
     window.addEventListener('scroll', schedule, { passive: true })

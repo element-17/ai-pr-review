@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Overview.module.css'
+import styles from './Overview.module.scss'
 import { useResource } from '../hooks'
 import { usePreferences } from '../lib/preferences'
 import type { Report } from '../lib/types'
@@ -14,6 +14,7 @@ import {
   ResourceState,
 } from '../components/ui'
 
+/** 接收任务、游客凭证和任务路径方法；返回报告摘要、风险、覆盖率及分析配置总览节点。 */
 export default function Overview({
   task,
   guestToken,
@@ -26,6 +27,7 @@ export default function Overview({
   )
   const result = report.data
   const stats = task.stats
+  /** 接收数字；返回当前界面语言的数字文本。 */
   const number = (value: number) =>
     new Intl.NumberFormat(language).format(value)
   const severityCounts = [

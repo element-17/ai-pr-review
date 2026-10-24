@@ -6,8 +6,9 @@ import { getGuestAccess } from '../../lib/guestTasks'
 import { navigate } from '../../hooks'
 import { usePreferences } from '../../lib/preferences'
 import { Icon, Notice } from '../ui'
-import styles from './OpenTaskForm.module.css'
+import styles from './OpenTaskForm.module.scss'
 
+/** 接收游客模式标记；返回按任务 ID 和可选游客凭证打开结果的表单节点。 */
 export default function OpenTaskForm({ guest = false }: { guest?: boolean }) {
   const { t } = usePreferences()
   const [taskId, setTaskId] = useState('')

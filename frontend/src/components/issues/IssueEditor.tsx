@@ -1,5 +1,5 @@
 import { classNames } from '../../lib/classNames'
-import styles from './IssueEditor.module.css'
+import styles from './IssueEditor.module.scss'
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import { usePreferences } from '../../lib/preferences'
@@ -17,6 +17,7 @@ import {
   Notice,
 } from '../ui'
 
+/** 接收问题详情、任务凭证、导航及保存/切换回调和只读标记；返回问题详情与反馈表单节点。 */
 export default function IssueEditor({
   issue,
   taskId,
@@ -48,6 +49,7 @@ export default function IssueEditor({
   const [validation, setValidation] = useState<
     'reasonRequired' | 'suggestionRequired' | 'noPending' | null
   >(null)
+  /** 接收是否撤销的标记；提交或撤销反馈并通知刷新，返回 Promise<void>。 */
   async function save(undo = false) {
     if (readOnly || busy) return
     setValidation(null)
@@ -82,6 +84,7 @@ export default function IssueEditor({
       setBusy(false)
     }
   }
+  /** 无参数；查找并通知切换到另一条待确认问题，无结果时显示提示，返回 Promise<void>。 */
   async function nextPending() {
     setBusy(true)
     setError(null)

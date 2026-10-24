@@ -19,6 +19,7 @@ import Files from './pages/Files'
 import Settings from './pages/Settings'
 import Compare from './pages/Compare'
 
+/** 无参数；返回包裹偏好上下文的应用根节点。 */
 function App() {
   return (
     <PreferencesProvider>
@@ -29,6 +30,7 @@ function App() {
 
 export default App
 
+/** 无参数；根据当前路由和会话返回应用外壳及对应页面节点。 */
 function Application() {
   const route = useRoute()
   const session = useSession()
@@ -50,6 +52,7 @@ function Application() {
   useEffect(() => {
     document.title = `${t(pageTitle)} · AI PR Review`
   }, [pageTitle, t])
+  /** 接收待更新的偏好字段；更新本地偏好并同步登录用户设置，返回 Promise<void>。 */
   async function changeAppearance(values: PreferencesUpdate) {
     setAppearanceBusy(true)
     setPreferences(values)
@@ -61,6 +64,7 @@ function Application() {
       setError(caught)
     } finally { setAppearanceBusy(false) }
   }
+  /** 无参数；确认后退出登录、清除会话并跳转，返回 Promise<void>。 */
   async function logout() {
     if (logoutBusy || !window.confirm(t('logoutConfirm'))) return
     setError(null)

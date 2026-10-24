@@ -5,23 +5,27 @@
   color: var(--muted);
   font-size: 11px;
   margin-bottom: 23px;
+
+  a {
+    color: var(--muted);
+  }
 }
-.breadcrumbs a {
-  color: var(--muted);
-}
+
 .review-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 25px;
   margin-bottom: 27px;
+
+  h1 {
+    font-size: 29px;
+    font-weight: 500;
+    margin: 13px 0 15px;
+    overflow-wrap: anywhere;
+  }
 }
-.review-header h1 {
-  font-size: 29px;
-  font-weight: 500;
-  margin: 13px 0 15px;
-  overflow-wrap: anywhere;
-}
+
 .review-meta {
   display: flex;
   align-items: center;
@@ -29,48 +33,56 @@
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 11px;
+
+  code {
+    background: var(--surface-hover);
+    padding: 4px 7px;
+    border-radius: 4px;
+    color: var(--text);
+  }
 }
-.review-meta code {
-  background: var(--surface-hover);
-  padding: 4px 7px;
-  border-radius: 4px;
-  color: var(--text);
-}
+
 .progress-card {
   margin-bottom: 24px;
   font-size: 12px;
 }
+
 .stages {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   color: var(--muted);
   font-size: 10px;
+
+  .active {
+    color: var(--accent);
+  }
 }
-.stages .active {
-  color: var(--accent);
-}
+
 .review-tabs {
   display: flex;
   gap: 25px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 28px;
   overflow-x: auto;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 0;
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+
+    &[aria-current] {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+  }
 }
-.review-tabs a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 0;
-  font-size: 12px;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-}
-.review-tabs a[aria-current] {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
+
 .task-footer {
   display: flex;
   align-items: center;
@@ -78,31 +90,41 @@
   gap: 20px;
   padding-top: 28px;
 }
+
 @media (max-width: 900px) {
   .review-header {
     flex-wrap: wrap;
   }
 }
+
 @media (max-width: 600px) {
   .review-meta {
     gap: 10px;
     font-size: 10px;
   }
-  .review-header h1 {
-    font-size: 23px;
+
+  .review-header {
+    h1 {
+      font-size: 23px;
+    }
+
+    :global(.eyebrow) {
+      letter-spacing: 0.5px;
+    }
   }
-  .review-header :global(.eyebrow) {
-    letter-spacing: 0.5px;
-  }
+
   .review-tabs {
     gap: 20px;
+
+    a {
+      font-size: 11px;
+    }
   }
-  .review-tabs a {
-    font-size: 11px;
-  }
+
   .stages {
     flex-wrap: wrap;
   }
+
   .task-footer {
     flex-wrap: wrap;
   }

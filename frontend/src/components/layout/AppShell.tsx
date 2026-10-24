@@ -1,5 +1,5 @@
 import { classNames } from '../../lib/classNames'
-import styles from './AppShell.module.css'
+import styles from './AppShell.module.scss'
 import { useState, type ReactNode } from 'react'
 import type { MessageKey } from '../../i18n/types'
 import type { User } from '../../lib/types'
@@ -23,6 +23,7 @@ interface AppShellProps {
   children: ReactNode
 }
 
+/** 接收页面、会话、操作状态及回调和子节点（AppShellProps）；返回导航、顶栏与内容外壳。 */
 export default function AppShell({
   pageTitle,
   taskPage,

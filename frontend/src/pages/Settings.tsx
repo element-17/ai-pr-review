@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Settings.module.css'
+import styles from './Settings.module.scss'
 import { useResource, useSession } from '../hooks'
 import { usePreferences } from '../lib/preferences'
 import type { Settings as UserSettings } from '../lib/types'
@@ -8,6 +8,7 @@ import SettingsForm from '../components/settings/SettingsForm'
 import SettingsNavigation from '../components/settings/SettingsNavigation'
 import { Icon, Notice, PageHeading, ResourceState } from '../components/ui'
 
+/** 无参数；返回外观设置、登录用户分析设置和数据说明组成的设置页面节点。 */
 export default function Settings() {
   const { t } = usePreferences()
   const session = useSession()
@@ -15,7 +16,7 @@ export default function Settings() {
     session ? '/users/me/settings' : null,
   )
   return (
-    <>
+    <div className={styles.page}>
       <PageHeading title="settings" description="settingsDescription" />
       <div className={styles['settings-layout']}>
         <SettingsNavigation analysisAvailable={!!resource.data} />
@@ -42,6 +43,6 @@ export default function Settings() {
           </section>
         </div>
       </div>
-    </>
+    </div>
   )
 }

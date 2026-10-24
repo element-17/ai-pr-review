@@ -17,6 +17,7 @@ export const PreferencesContext = createContext<{
   t: (key: MessageKey) => string
 } | null>(null)
 
+/** 无参数；返回偏好上下文，未包裹 PreferencesProvider 时抛出错误。 */
 export function usePreferences() {
   const context = useContext(PreferencesContext)
   if (!context) throw new Error('PreferencesProvider is required')

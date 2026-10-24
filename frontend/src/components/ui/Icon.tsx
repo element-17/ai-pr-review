@@ -21,6 +21,7 @@ const iconPaths = {
   search: 'm16 16 5 5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
 }
 
+/** 接收图标名称和可选尺寸（默认 20）；返回对应 SVG 节点。 */
 export function Icon({
   name,
   size = 20,

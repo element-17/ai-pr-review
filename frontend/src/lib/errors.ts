@@ -1,7 +1,7 @@
 import { ApiError } from './api'
 import type { MessageKey } from '../i18n/types'
 
-// Only translate recognized reasons; never expose arbitrary server errors or traces.
+/** 接收任意错误；返回可展示的提示翻译键，无法识别时返回 requestFailed，避免暴露原始错误。 */
 export function errorMessageKey(error: unknown): MessageKey {
   if (!(error instanceof ApiError)) return 'requestFailed'
   const message = error.message

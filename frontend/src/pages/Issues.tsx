@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Issues.module.css'
+import styles from './Issues.module.scss'
 import { query } from '../lib/api'
 import { navigate, useCollection, useFormatting, useResource } from '../hooks'
 import { usePreferences } from '../lib/preferences'
@@ -16,6 +16,7 @@ import {
   ResourceState,
 } from '../components/ui'
 
+/** 接收任务上下文、查询串和可选问题 ID；返回问题筛选列表与选中问题编辑区域节点。 */
 export default function Issues({
   task,
   guestToken,
@@ -52,6 +53,7 @@ export default function Issues({
     selected ? `/tasks/${task.taskId}/issues/${selected}` : null,
     guestToken,
   )
+  /** 接收可选问题 ID；返回保留筛选参数的问题页地址，省略 ID 时清除选中项。 */
   function issuePath(value?: number) {
     return taskPath('/issues', {
       ...Object.fromEntries(params.entries()),

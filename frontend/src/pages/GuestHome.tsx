@@ -2,8 +2,9 @@ import { usePreferences } from '../lib/preferences'
 import ReviewForm from '../components/review/ReviewForm'
 import OpenTaskForm from '../components/review/OpenTaskForm'
 import { Icon, Link } from '../components/ui'
-import styles from './GuestHome.module.css'
+import styles from './GuestHome.module.scss'
 
+/** 接收可选初始查询串；返回游客 PR 分析、凭证访问和登录注册入口页面节点。 */
 export default function GuestHome({ search = '' }: { search?: string }) {
   const { t } = usePreferences()
   const returnTo = encodeURIComponent(`/${search ? `?${search}` : ''}`)

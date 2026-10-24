@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Files.module.css'
+import styles from './Files.module.scss'
 import { query } from '../lib/api'
 import { navigate, useFormatting, useResource } from '../hooks'
 import { usePreferences } from '../lib/preferences'
@@ -18,6 +18,7 @@ import {
   ResourceState,
 } from '../components/ui'
 
+/** 接收任务上下文、查询串和可选文件 ID；返回文件筛选列表与当前文件 Diff 页面节点。 */
 export default function Files({
   task,
   guestToken,
@@ -51,6 +52,7 @@ export default function Files({
     fileId ? `/tasks/${task.taskId}/files/${fileId}/diff` : null,
     guestToken,
   )
+  /** 接收待覆盖或清除的查询参数；返回保留其余筛选条件的文件页地址。 */
   function filePath(values: Record<string, string | number | undefined>) {
     return taskPath('/files', { ...Object.fromEntries(params), ...values })
   }

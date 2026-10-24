@@ -1,9 +1,10 @@
 import { classNames } from '../lib/classNames'
-import styles from './Home.module.css'
+import styles from './Home.module.scss'
 import { usePreferences } from '../lib/preferences'
 import ReviewForm from '../components/review/ReviewForm'
 import OpenTaskForm from '../components/review/OpenTaskForm'
 
+/** 接收可选初始查询串；返回登录用户的 PR 分析及任务结果入口页面节点。 */
 export default function Home({ search = '' }: { search?: string }) {
   const { t } = usePreferences()
   return (

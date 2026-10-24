@@ -10,6 +10,7 @@
   color: var(--muted);
   white-space: nowrap;
 }
+
 .badge-dot {
   width: 5px;
   height: 5px;
@@ -17,6 +18,7 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
 .status-3,
 .feedback-2,
 .feedback-3,
@@ -25,6 +27,7 @@
   background: var(--add-bg);
   color: var(--positive);
 }
+
 .status-4,
 .status-1,
 .severity-2,
@@ -33,6 +36,7 @@
   background: var(--warning-bg);
   color: var(--warning);
 }
+
 .status-5,
 .severity-3,
 .severity-4,
@@ -40,6 +44,7 @@
   background: var(--danger-bg);
   color: var(--danger);
 }
+
 .status-2 {
   background: var(--accent-soft);
   color: var(--accent);

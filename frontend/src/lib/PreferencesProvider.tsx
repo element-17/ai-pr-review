@@ -9,6 +9,7 @@ interface Preferences {
   theme: number
   followTime: boolean
 }
+/** 无参数；返回本地偏好，缺失或读取失败的字段使用默认值。 */
 function initialPreferences(): Preferences {
   try {
     const stored = JSON.parse(
@@ -24,21 +25,25 @@ function initialPreferences(): Preferences {
   }
 }
 
+/** 接收系统主题变化回调；注册监听并返回取消订阅函数。 */
 function subscribeSystemTheme(callback: () => void) {
   const media = window.matchMedia('(prefers-color-scheme: dark)')
   media.addEventListener('change', callback)
   return () => media.removeEventListener('change', callback)
 }
 
+/** 无参数；返回系统当前是否偏好深色主题。 */
 function systemIsDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
+/** 接收子节点；返回提供主题、语言、更新方法和翻译函数的上下文节点。 */
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, updatePreferences] = useState(initialPreferences)
   const prefersDark = useSyncExternalStore(subscribeSystemTheme, systemIsDark)
   const [hour, setHour] = useState(() => new Date().getHours())
   useEffect(() => {
+    /** 无参数；将本地当前小时写入状态，无返回值。 */
     const updateTime = () => setHour(new Date().getHours())
     const timer = window.setInterval(updateTime, 30_000)
     window.addEventListener('focus', updateTime)
@@ -65,8 +70,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       value={{
         ...preferences,
         resolvedTheme,
+        /** 接收部分偏好字段；合并更新本地状态，无返回值。 */
         setPreferences: (values) =>
           updatePreferences((current) => ({ ...current, ...values })),
+        /** 接收翻译键；返回当前界面语言的文案。 */
         t: (key) => translate(preferences.language, key),
       }}
     >

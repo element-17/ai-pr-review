@@ -1,5 +1,5 @@
 import { classNames } from '../lib/classNames'
-import styles from './Compare.module.css'
+import styles from './Compare.module.scss'
 import { useState } from 'react'
 import { comparisonEnabled, query } from '../lib/api'
 import { navigate, useCollection, useFormatting, useResource, useSession } from '../hooks'
@@ -16,6 +16,7 @@ import {
   ResourceState,
 } from '../components/ui'
 
+/** 接收任务上下文和版本查询串；返回同一 PR 的版本选择、统计及问题差异页面节点。 */
 export default function Compare({
   task,
   taskPath,

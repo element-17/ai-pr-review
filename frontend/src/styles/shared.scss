@@ -9,6 +9,7 @@
   color: #fff9ee;
   flex-shrink: 0;
 }
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -23,23 +24,28 @@
   font-weight: 500;
   line-height: 1.5;
   white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--surface-hover);
+    border-color: var(--muted);
+  }
+
+  &.primary {
+    background: var(--ink);
+    color: var(--on-ink);
+    border-color: var(--ink);
+
+    &:hover:not(:disabled) {
+      filter: brightness(0.92);
+    }
+  }
+
+  &.small {
+    font-size: 11px;
+    padding: 7px 12px;
+  }
 }
-.button:hover:not(:disabled) {
-  background: var(--surface-hover);
-  border-color: var(--muted);
-}
-.button.primary {
-  background: var(--ink);
-  color: var(--on-ink);
-  border-color: var(--ink);
-}
-.button.primary:hover:not(:disabled) {
-  filter: brightness(0.92);
-}
-.button.small {
-  font-size: 11px;
-  padding: 7px 12px;
-}
+
 .icon-button {
   background: transparent;
   border: 1px solid transparent;
@@ -49,20 +55,24 @@
   align-items: center;
   justify-content: center;
   color: var(--muted);
+
+  &:hover {
+    background: var(--surface-hover);
+  }
 }
-.icon-button:hover {
-  background: var(--surface-hover);
-}
+
 .card {
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--surface);
   padding: 24px;
   min-width: 0;
+
+  &.compact {
+    padding: 20px;
+  }
 }
-.card.compact {
-  padding: 20px;
-}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -71,84 +81,104 @@
   font-size: 12px;
   font-weight: 500;
   min-width: 0;
+
+  > span {
+    color: var(--muted);
+  }
 }
-.field > span {
-  color: var(--muted);
-}
+
 .actions {
   display: flex;
   align-items: center;
   gap: 10px;
+
+  &.wrap {
+    flex-wrap: wrap;
+  }
 }
-.actions.wrap {
-  flex-wrap: wrap;
-}
+
 .spread {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+
+  h3 {
+    margin: 0;
+  }
 }
-.spread h3 {
-  margin: 0;
-}
+
 .section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+  }
+
+  > a {
+    font-size: 11px;
+  }
 }
-.section-heading h2 {
-  margin: 0;
-}
-.section-heading > a {
-  font-size: 11px;
-}
+
 .muted {
   color: var(--muted);
 }
+
 .small-text {
   font-size: 11px;
 }
+
 .block {
   display: block;
 }
+
 .full-width {
   width: 100%;
 }
+
 .positive {
   color: var(--positive);
 }
+
 .negative,
 .danger-text {
   color: var(--danger);
 }
+
 .text-warning {
   color: var(--warning);
 }
+
 .text-link {
   font-size: 12px;
   display: inline-flex;
   gap: 6px;
   align-items: center;
 }
+
 .preserve-lines {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
 .stack {
   display: flex;
   flex-direction: column;
   gap: 22px;
   min-width: 0;
 }
+
 .eyebrow {
   color: var(--accent);
   font-size: 10px;
   letter-spacing: 1.5px;
   font-weight: 600;
 }
+
 .check-label {
   display: flex;
   align-items: center;
@@ -156,6 +186,7 @@
   font-size: 11px;
   line-height: 1.8;
 }
+
 .filters {
   display: flex;
   align-items: flex-end;
@@ -167,17 +198,20 @@
   border-bottom: 1px solid var(--border);
   border-radius: 0;
   background: transparent;
+
+  .field {
+    margin: 0;
+    min-width: 100px;
+    flex: 1;
+  }
+
+  input,
+  select {
+    font-size: 11px;
+    padding: 10px;
+  }
 }
-.filters .field {
-  margin: 0;
-  min-width: 100px;
-  flex: 1;
-}
-.filters input,
-.filters select {
-  font-size: 11px;
-  padding: 10px;
-}
+
 progress {
   width: 100%;
   height: 6px;
@@ -187,14 +221,17 @@ progress {
   background: var(--surface-hover);
   border-radius: 4px;
   overflow: hidden;
+
+  &::-webkit-progress-bar {
+    background: var(--surface-hover);
+  }
+
+  &::-webkit-progress-value {
+    background: var(--accent);
+    border-radius: 4px;
+  }
 }
-progress::-webkit-progress-bar {
-  background: var(--surface-hover);
-}
-progress::-webkit-progress-value {
-  background: var(--accent);
-  border-radius: 4px;
-}
+
 .count {
   border-radius: 5px;
   padding: 2px 6px;
@@ -202,17 +239,21 @@ progress::-webkit-progress-value {
   background: var(--surface-hover);
   font-size: 10px;
 }
+
 @media (max-width: 600px) {
   .filters {
     padding: 0 0 20px;
     gap: 12px;
+
+    .field {
+      min-width: calc(50% - 12px);
+    }
+
+    .search-field {
+      min-width: 100%;
+    }
   }
-  .filters .field {
-    min-width: calc(50% - 12px);
-  }
-  .filters .search-field {
-    min-width: 100%;
-  }
+
   .card {
     padding: 20px;
   }

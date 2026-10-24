@@ -13,6 +13,7 @@ export const registrationFields = ['username', 'password', 'nickname', 'email', 
 export type RegistrationField = typeof registrationFields[number]
 export type RegistrationErrors = Partial<Record<RegistrationField, MessageKey>>
 
+/** 接收注册表单元素；返回整理后的字段 values 和以翻译键表示的字段错误 errors。 */
 export function validateRegistration(form: HTMLFormElement) {
   const data = new FormData(form)
   const values = {

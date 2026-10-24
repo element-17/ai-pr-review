@@ -11,6 +11,7 @@ export const deletionEnabled = import.meta.env.VITE_ENABLE_TASK_DELETE !== 'fals
 export class ApiError extends Error {
   code: number
   data: Record<string, unknown> | null
+  /** 接收错误码、消息和可选附加数据；创建 ApiError 实例。 */
   constructor(code: number, message: string, data: Record<string, unknown> | null = null) {
     super(message)
     this.name = 'ApiError'
@@ -35,12 +36,14 @@ interface Envelope {
   data?: unknown
 }
 
+/** 接收任意值；返回它是否为非空、非数组对象。 */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
 let refreshRequest: Promise<void> | null = null
 
+/** 接收失效前的会话；若会话未更换则清除并跳转登录，无返回值。 */
 function expireSession(previous: Session | null) {
   if (getSession()?.refreshToken !== previous?.refreshToken) return
   setSession(null)
@@ -50,6 +53,7 @@ function expireSession(previous: Session | null) {
   }
 }
 
+/** 无参数；合并并发刷新并保存新会话，返回 Promise<void>，失败时拒绝。 */
 async function refreshSession() {
   if (!refreshRequest) {
     const previous = getSession()
@@ -69,6 +73,7 @@ async function refreshSession() {
   return refreshRequest
 }
 
+/** 接收接口路径、请求选项和刷新许可；返回数据 Promise<T>，请求失败时拒绝。 */
 async function request<T>(path: string, options: RequestOptions = {}, canRefresh = true): Promise<T> {
   const headers = new Headers({ Accept: options.raw ? 'text/markdown, application/json' : 'application/json' })
   const session = getSession()
@@ -123,14 +128,19 @@ async function request<T>(path: string, options: RequestOptions = {}, canRefresh
 }
 
 export const api = {
+  /** 接收接口路径和可选请求配置；返回响应数据 Promise<T>。 */
   get: <T>(path: string, options?: RequestOptions) => request<T>(path, options),
+  /** 接收接口路径、可选请求体及配置；返回 POST 响应数据 Promise<T>。 */
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'POST', body }),
+  /** 接收接口路径、请求体和可选配置；返回 PATCH 响应数据 Promise<T>。 */
   patch: <T>(path: string, body: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PATCH', body }),
+  /** 接收接口路径；返回 DELETE 响应数据 Promise<T>。 */
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
+/** 接收查询参数对象；忽略 undefined 和空字符串，返回带问号的查询串或空串。 */
 export function query(
   values: Record<string, string | number | boolean | undefined>,
 ) {
@@ -141,6 +151,7 @@ export function query(
   return params.size ? `?${params}` : ''
 }
 
+/** 接收可空 URL；返回 HTTPS GitHub 地址，无效时返回 undefined。 */
 export function safeGithubUrl(value: string | null | undefined) {
   try {
     const url = new URL(value || '')
@@ -152,6 +163,7 @@ export function safeGithubUrl(value: string | null | undefined) {
   }
 }
 
+/** 接收 PR 链接字符串；返回去除查询串和末尾斜杠的合法 GitHub PR 地址，否则返回 null。 */
 export function normalizePrUrl(value: string) {
   try {
     const url = new URL(value.trim())

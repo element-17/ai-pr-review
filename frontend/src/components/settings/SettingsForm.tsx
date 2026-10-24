@@ -1,11 +1,12 @@
 import { classNames } from '../../lib/classNames'
-import styles from './SettingsForm.module.css'
+import styles from './SettingsForm.module.scss'
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import { usePreferences } from '../../lib/preferences'
 import type { Settings as UserSettings } from '../../lib/types'
 import { EnumText, ErrorNotice, Icon, Notice } from '../ui'
 
+/** 接收用户初始设置；返回可校验并保存检查类别、忽略目录和分析规模的表单节点。 */
 export default function SettingsForm({ initial }: { initial: UserSettings }) {
   const { t } = usePreferences()
   const [categories, setCategories] = useState(initial.checkCategories)

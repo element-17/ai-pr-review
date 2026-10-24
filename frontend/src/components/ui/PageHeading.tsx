@@ -1,8 +1,9 @@
-import styles from './PageHeading.module.css'
+import styles from './PageHeading.module.scss'
 import type { ReactNode } from 'react'
 import { usePreferences } from '../../lib/preferences'
 import type { MessageKey } from '../../i18n/types'
 
+/** 接收标题键、可选说明键和操作子节点；返回页面标题区域节点。 */
 export function PageHeading({
   title,
   description,

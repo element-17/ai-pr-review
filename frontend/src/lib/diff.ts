@@ -9,10 +9,12 @@ export interface SplitLine {
   right: DiffLine | null
 }
 
+/** 接收后端 Diff 行数组；返回附加连续 index 的展示行数组。 */
 export function toDiffLines(rows: DiffRow[]): DiffLine[] {
   return rows.map((row, index) => ({ ...row, index }))
 }
 
+/** 接收统一 Diff 行；返回左右配对的并排行，缺失一侧使用 null。 */
 export function splitDiff(lines: DiffLine[]): SplitLine[] {
   const result: SplitLine[] = []
   let position = 0

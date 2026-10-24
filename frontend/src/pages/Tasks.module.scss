@@ -1,0 +1,71 @@
+.task-filters {
+  :global(.field):first-child {
+    min-width: 190px;
+  }
+
+  :global(.actions) {
+    margin-left: auto;
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.task-list {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-scroll {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  th {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 15px 18px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 23px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.task-title {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+  min-width: 160px;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+@media (max-width: 600px) {
+  .task-list {
+    padding: 0;
+  }
+
+  .task-filters {
+    :global(.actions) {
+      margin-left: 0;
+    }
+  }
+}

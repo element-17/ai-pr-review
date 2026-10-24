@@ -5,8 +5,9 @@ import { rememberGuestTask } from '../../lib/guestTasks'
 import { usePreferences } from '../../lib/preferences'
 import type { CreatedTask, Language, Preview } from '../../lib/types'
 import { EnumText, ErrorNotice, ExternalLink, Icon, Link, Notice } from '../ui'
-import styles from './ReviewForm.module.css'
+import styles from './ReviewForm.module.scss'
 
+/** 接收初始查询串和游客模式标记；返回 PR 预览、语言选择及分析提交表单节点。 */
 export default function ReviewForm({ search = '', guest = false }: { search?: string; guest?: boolean }) {
   const { t, language } = usePreferences()
   const { number } = useFormatting()
@@ -24,6 +25,7 @@ export default function ReviewForm({ search = '', guest = false }: { search?: st
   const [validation, setValidation] = useState(false)
   const [consent, setConsent] = useState(false)
   const [existingTask, setExistingTask] = useState<number | null>(null)
+  /** 接收表单提交事件；先预览 PR，确认后创建任务并跳转，返回 Promise<void>。 */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return

@@ -5,11 +5,13 @@ import { usePreferences, type PreferencesUpdate } from '../../lib/preferences'
 import type { Language } from '../../lib/types'
 import { EnumText, ErrorNotice } from '../ui'
 
+/** 无参数；返回当前主题、按时间切换和界面语言的设置区域节点。 */
 export default function Appearance() {
   const { t, theme, language, followTime, setPreferences } = usePreferences()
   const session = useSession()
   const [error, setError] = useState<unknown>(null)
   const [busy, setBusy] = useState(false)
+  /** 接收待更新偏好；更新本地配置并同步登录用户的主题/语言，返回 Promise<void>。 */
   async function change(values: PreferencesUpdate) {
     setPreferences(values)
     setError(null)

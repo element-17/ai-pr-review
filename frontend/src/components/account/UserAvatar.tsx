@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { classNames } from '../../lib/classNames'
 import type { User } from '../../lib/types'
-import styles from './UserAvatar.module.css'
+import styles from './UserAvatar.module.scss'
 
+/** 接收可空用户、尺寸标记和类名；返回头像节点，图片不可用时显示姓名首字符。 */
 export default function UserAvatar({ user, large = false, className }: {
   user: Pick<User, 'username' | 'nickname' | 'avatar'> | null
   large?: boolean
