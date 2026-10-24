@@ -127,6 +127,7 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
         } catch (ModelException ex) {
             throw ex;
         } catch (AgentException ex) {
+            log.warn("任务 {} PR 总结生成失败：{}", task.getId(), ex.getMessage());
             throw new AnalysisPipelineException(TaskErrorCodeConstant.MODEL_FORMAT_ERROR,
                     "PR 总结生成失败");
         }
@@ -251,10 +252,17 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
             if (issues == null) {
                 throw new AgentException("submit_issues 参数为空");
             }
+            List<IssueDraft> drafts = issues.getIssues();
+            if (drafts != null && drafts.size() > AgentToolDefinitions.MAX_ISSUES_PER_BATCH) {
+                log.warn("任务 {} 批次返回 {} 条问题，超过上限 {}，只保留前 {} 条",
+                        task.getId(), drafts.size(), AgentToolDefinitions.MAX_ISSUES_PER_BATCH,
+                        AgentToolDefinitions.MAX_ISSUES_PER_BATCH);
+                drafts = drafts.subList(0, AgentToolDefinitions.MAX_ISSUES_PER_BATCH);
+            }
 
             IssueValidationResult validation;
             synchronized (issueSaveLock) {
-                validation = issueValidationService.save(task.getId(), issues.getIssues());
+                validation = issueValidationService.save(task.getId(), drafts);
             }
             markFiles(batch, TaskFileConstant.STATUS_ANALYZED, null);
             if (validation.dropped() > 0) {

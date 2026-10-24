@@ -43,7 +43,8 @@ pr:
       model: deepseek/deepseek-v4.1-flash
       connect-timeout-ms: 10000
       read-timeout-ms: 180000
-      max-tokens: 8192
+      # 输出 token 上限；V4.1 Flash 的 1M 上下文下网关实测可接受 128K
+      max-tokens: 131072
       temperature: 0.1
   app:
     frontend-base-url: http://localhost:5173
