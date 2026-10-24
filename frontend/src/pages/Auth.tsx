@@ -7,6 +7,14 @@ import { setSession } from '../lib/session'
 import { navigate } from '../hooks'
 import { safeReturnPath } from '../lib/routes'
 import { usePreferences } from '../lib/preferences'
+import {
+  registrationFields,
+  registrationLimits,
+  validateRegistration,
+  type RegistrationErrors,
+  type RegistrationField,
+} from '../lib/registration'
+import type { MessageKey } from '../i18n/types'
 import type { Session, Settings } from '../lib/types'
 import { ErrorNotice, Icon, Link, Notice } from '../components/ui'
 
@@ -20,24 +28,60 @@ export default function Auth({
   const { t, setPreferences } = usePreferences()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<unknown>(null)
+  const [validation, setValidation] = useState<RegistrationErrors>({})
   const params = new URLSearchParams(search)
   const returnTo = safeReturnPath(params.get('returnTo'))
+  function validateField(event: FormEvent<HTMLFormElement>, reveal = false) {
+    const input = event.target
+    if (!register || busy || !(input instanceof HTMLInputElement)) return
+    setError(null)
+    const field = registrationFields.find(field => field === input.name)
+    if (!field || (!reveal && !(field in validation))) return
+    const { errors } = validateRegistration(event.currentTarget)
+    setValidation(previous => ({ ...previous, [field]: errors[field] }))
+  }
+  function describedBy(field: RegistrationField) {
+    return register ? `register-${field}-hint${validation[field] ? ` register-${field}-error` : ''}` : undefined
+  }
+  function fieldFeedback(field: RegistrationField, hint: MessageKey) {
+    if (!register) return null
+    return (
+      <>
+        <span id={`register-${field}-hint`} className={styles['field-hint']}>{t(hint)}</span>
+        {validation[field] && <span id={`register-${field}-error`} className={styles['field-error']} role="alert">{t(validation[field])}</span>}
+      </>
+    )
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const values = new FormData(event.currentTarget)
+    if (busy) return
+    const form = event.currentTarget
+    const registration = register ? validateRegistration(form) : null
+    setError(null)
+    if (registration) {
+      setValidation(registration.errors)
+      const invalid = registrationFields.find(field => registration.errors[field])
+      if (invalid) {
+        const input = form.elements.namedItem(invalid)
+        if (input instanceof HTMLInputElement) input.focus()
+        return
+      }
+    }
+    const values = new FormData(form)
     const username = String(values.get('username')).trim()
     const password = String(values.get('password'))
     setBusy(true)
-    setError(null)
     try {
-      if (register) {
+      if (registration) {
+        const { username, password, nickname, email, phone } = registration.values
         await api.post(
           '/auth/register',
           {
             username,
             password,
-            nickname: values.get('nickname') || undefined,
-            email: values.get('email') || undefined,
+            nickname: nickname || undefined,
+            email: email || undefined,
+            phone: phone || undefined,
           },
           { public: true },
         )
@@ -71,49 +115,91 @@ export default function Auth({
         <h1>{t(register ? 'registerTitle' : 'loginTitle')}</h1>
         <p>{t(register ? 'registerDescription' : 'loginDescription')}</p>
         {params.has('registered') && <Notice>{t('registerSuccess')}</Notice>}
-        <form onSubmit={submit}>
-          <label className="field">
-            <span>{t('username')}</span>
-            <input
-              name="username"
-              autoComplete="username"
-              required
-              minLength={register ? 3 : 1}
-              maxLength={50}
-              pattern={register ? '[a-zA-Z0-9_]+' : undefined}
-            />
-          </label>
-          <label className="field">
-            <span>{t('password')}</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete={register ? 'new-password' : 'current-password'}
-              required
-              minLength={6}
-              maxLength={register ? 32 : 64}
-            />
-          </label>
-          {register && (
-            <>
-              <label className="field">
-                <span>{t('nickname')}</span>
-                <input name="nickname" maxLength={50} />
-              </label>
-              <label className="field">
-                <span>{t('email')}</span>
-                <input name="email" type="email" maxLength={100} />
-              </label>
-            </>
-          )}
-          {!!error && <ErrorNotice error={error} />}
-          <button
-            className={classNames('button', 'primary', 'full-width')}
-            disabled={busy}
-          >
-            {busy ? t('loading') : t(register ? 'register' : 'login')}
-            <Icon name="arrow" size={17} />
-          </button>
+        {params.has('expired') && <Notice>{t('sessionExpired')}</Notice>}
+        <form noValidate={register} onSubmit={submit} onBlur={event => validateField(event, true)} onChange={event => validateField(event)}>
+          <fieldset disabled={busy}>
+            <label className="field">
+              <span id="auth-username-label">{t('username')}</span>
+              <input
+                name="username"
+                aria-labelledby="auth-username-label"
+                autoComplete="username"
+                required
+                minLength={register ? registrationLimits.username.min : 1}
+                maxLength={registrationLimits.username.max}
+                pattern={register ? '[a-zA-Z0-9_]+' : undefined}
+                aria-invalid={register ? !!validation.username : undefined}
+                aria-describedby={describedBy('username')}
+              />
+              {fieldFeedback('username', 'registerUsernameHint')}
+            </label>
+            <label className="field">
+              <span id="auth-password-label">{t('password')}</span>
+              <input
+                name="password"
+                aria-labelledby="auth-password-label"
+                type="password"
+                autoComplete={register ? 'new-password' : 'current-password'}
+                required
+                minLength={6}
+                maxLength={register ? registrationLimits.password.max : 64}
+                aria-invalid={register ? !!validation.password : undefined}
+                aria-describedby={describedBy('password')}
+              />
+              {fieldFeedback('password', 'registerPasswordHint')}
+            </label>
+            {register && (
+              <>
+                <label className="field">
+                  <span id="auth-nickname-label">{t('nickname')}</span>
+                  <input
+                    name="nickname"
+                    aria-labelledby="auth-nickname-label"
+                    autoComplete="nickname"
+                    maxLength={registrationLimits.nickname.max}
+                    aria-invalid={!!validation.nickname}
+                    aria-describedby={describedBy('nickname')}
+                  />
+                  {fieldFeedback('nickname', 'nicknameLength')}
+                </label>
+                <label className="field">
+                  <span id="auth-email-label">{t('email')}</span>
+                  <input
+                    name="email"
+                    aria-labelledby="auth-email-label"
+                    type="email"
+                    autoComplete="email"
+                    maxLength={registrationLimits.email.max}
+                    aria-invalid={!!validation.email}
+                    aria-describedby={describedBy('email')}
+                  />
+                  {fieldFeedback('email', 'registerEmailHint')}
+                </label>
+                <label className="field">
+                  <span id="auth-phone-label">{t('phoneOptional')}</span>
+                  <input
+                    name="phone"
+                    aria-labelledby="auth-phone-label"
+                    type="tel"
+                    autoComplete="tel-national"
+                    inputMode="tel"
+                    maxLength={registrationLimits.phone.max}
+                    aria-invalid={!!validation.phone}
+                    aria-describedby={describedBy('phone')}
+                  />
+                  {fieldFeedback('phone', 'registerPhoneHint')}
+                </label>
+              </>
+            )}
+            {!!error && <ErrorNotice error={error} />}
+            <button
+              className={classNames('button', 'primary', 'full-width')}
+              disabled={busy}
+            >
+              {busy ? t('loading') : t(register ? 'register' : 'login')}
+              <Icon name="arrow" size={17} />
+            </button>
+          </fieldset>
         </form>
         <p className={styles['auth-switch']}>
           {t(register ? 'haveAccount' : 'noAccount')}{' '}

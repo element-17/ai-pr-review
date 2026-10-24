@@ -3,6 +3,7 @@ import styles from './IssueEditor.module.css'
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import { usePreferences } from '../../lib/preferences'
+import { useFormatting } from '../../hooks'
 import type { IssueDetail, IssuePage } from '../../lib/types'
 import type { WorkspaceProps } from '../workspace/types'
 import {
@@ -24,6 +25,7 @@ export default function IssueEditor({
   returnTo,
   onSaved,
   onNext,
+  readOnly = false,
 }: {
   issue: IssueDetail
   taskId: number
@@ -32,8 +34,10 @@ export default function IssueEditor({
   returnTo: string | null
   onSaved: () => void
   onNext: (value: number) => void
+  readOnly?: boolean
 }) {
   const { t } = usePreferences()
+  const { percent } = useFormatting()
   const [feedbackStatus, setFeedbackStatus] = useState(issue.feedbackStatus)
   const [remark, setRemark] = useState(issue.feedbackRemark || '')
   const [suggestion, setSuggestion] = useState(
@@ -45,6 +49,7 @@ export default function IssueEditor({
     'reasonRequired' | 'suggestionRequired' | 'noPending' | null
   >(null)
   async function save(undo = false) {
+    if (readOnly || busy) return
     setValidation(null)
     if (undo && !window.confirm(t('undoConfirm'))) return
     if (!undo && feedbackStatus === 4 && !remark.trim()) {
@@ -107,7 +112,7 @@ export default function IssueEditor({
       <div className="actions">
         <Badge group="severity" value={issue.severity} />
         <span className="muted small-text">
-          {t('confidence')} {issue.confidence}%
+          {t('confidence')} {percent(issue.confidence)}
         </span>
       </div>
       <h2 className={styles['issue-title']}>{issue.title}</h2>
@@ -154,7 +159,8 @@ export default function IssueEditor({
           void save()
         }}
       >
-        <fieldset disabled={busy}>
+        {readOnly && <Notice>{t('expiredReadOnly')}</Notice>}
+        <fieldset disabled={busy || readOnly}>
           <label className="field">
             <span>{t('suggestion')}</span>
             <textarea
@@ -219,16 +225,11 @@ export default function IssueEditor({
             >
               {t('undo')}
             </button>
-            <button
-              className="button"
-              type="button"
-              onClick={() => void nextPending()}
-            >
-              {t('nextPending')}
-              <Icon name="arrow" size={15} />
-            </button>
           </div>
         </fieldset>
+        <button className="button" type="button" disabled={busy} onClick={() => void nextPending()}>
+          {t('nextPending')}<Icon name="arrow" size={15} />
+        </button>
       </form>
       {issue.feedbackTime && (
         <p className={classNames('muted', 'small-text')}>

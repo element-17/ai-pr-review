@@ -7,6 +7,14 @@ export interface User {
   avatar: string | null
   role: string
 }
+export interface UserProfile extends User {
+  email?: string | null
+  phone?: string | null
+  status?: number | null
+  lastLoginTime?: string | null
+  createTime?: string | null
+  updateTime?: string | null
+}
 export interface Session {
   accessToken: string
   refreshToken: string
@@ -78,6 +86,7 @@ export interface TaskDetail extends Task {
   errorCode: number | null
   errorMessage: string | null
   isGuest: boolean
+  expireTime?: string | null
   canCancel: boolean
   canRetry: boolean
   canDelete: boolean
@@ -182,8 +191,8 @@ export interface Preview {
   reusableTask: Task | null
 }
 export interface Comparison {
-  base: Task
-  target: Task
+  base: Pick<Task, 'taskId' | 'headSha' | 'status' | 'reportLanguage' | 'createTime' | 'finishTime'> & { stats?: { issues: IssueStats } }
+  target: Comparison['base']
   summary: Record<
     'purpose' | 'changes' | 'impacts',
     { base: string | null; target: string | null; changed: boolean }

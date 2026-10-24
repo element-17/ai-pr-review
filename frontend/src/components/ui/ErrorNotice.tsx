@@ -1,7 +1,7 @@
-import { ApiError } from '../../lib/api'
 import { usePreferences } from '../../lib/preferences'
-import type { MessageKey } from '../../i18n/types'
+import { errorMessageKey } from '../../lib/errors'
 import { Notice } from './Notice'
+import { Link } from './Link'
 
 export function ErrorNotice({
   error,
@@ -11,28 +11,15 @@ export function ErrorNotice({
   retry?: () => void
 }) {
   const { t } = usePreferences()
-  const known = [
-    'networkError',
-    'requestFailed',
-    'invalidResponse',
-    'sessionExpired',
-    'invalidCredentials',
-  ]
-  let key: MessageKey = 'requestFailed'
-  if (error instanceof ApiError) {
-    if (known.includes(error.message)) key = error.message as MessageKey
-    else if (error.message.includes('账号已被禁用')) key = 'accountDisabled'
-    else if (error.message.includes('用户名已存在')) key = 'usernameExists'
-    else if (error.code === 400) key = 'invalidInput'
-    else if (error.code === 403) key = 'forbidden'
-    else if (error.code === 404) key = 'resourceNotFound'
-    else if (error.code === 429) key = 'rateLimited'
-    else if (error.code >= 500) key = 'serverError'
-  }
+  const key = errorMessageKey(error)
   return (
     <Notice danger>
       <strong>{t('errorTitle')}</strong>
       <p>{t(key)}</p>
+      {key === 'sessionExpired' && location.pathname !== '/login' && (
+        <Link className="button small" to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}>{t('login')}</Link>
+      )}
+      {key === 'guestLinkExpired' && <Link className="button small" to="/">{t('openTask')}</Link>}
       {retry && (
         <button className="button small" onClick={retry}>
           {t('retry')}

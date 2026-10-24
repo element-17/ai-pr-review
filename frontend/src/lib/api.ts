@@ -1,5 +1,6 @@
 import type { Session } from './types'
 import { getSession, setSession } from './session'
+import { navigate } from './routes'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 // master 后端已实现对应接口，默认开启；仅在显式配置为 'false' 时关闭
@@ -40,6 +41,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 let refreshRequest: Promise<void> | null = null
 
+function expireSession(previous: Session | null) {
+  if (getSession()?.refreshToken !== previous?.refreshToken) return
+  setSession(null)
+  if (!['/login', '/register'].includes(location.pathname)) {
+    const returnTo = location.pathname + location.search
+    navigate(`/login?expired=1&returnTo=${encodeURIComponent(returnTo)}`)
+  }
+}
+
 async function refreshSession() {
   if (!refreshRequest) {
     const previous = getSession()
@@ -51,7 +61,7 @@ async function refreshSession() {
       if (getSession()?.refreshToken !== previous.refreshToken) throw new ApiError(401, 'sessionExpired')
       setSession(session)
     })().catch(error => {
-      if (getSession()?.refreshToken === previous?.refreshToken) setSession(null)
+      expireSession(previous)
       if (error instanceof ApiError && error.code === 401) throw new ApiError(401, 'sessionExpired')
       throw error
     }).finally(() => { refreshRequest = null })
@@ -97,7 +107,7 @@ async function request<T>(path: string, options: RequestOptions = {}, canRefresh
       await refreshSession()
       return request<T>(path, options, false)
     }
-    if (!options.public && session && current?.accessToken === session.accessToken) setSession(null)
+    if (!options.public && (!session || current?.accessToken === session.accessToken)) expireSession(session)
     throw new ApiError(401, options.public ? 'invalidCredentials' : 'sessionExpired')
   }
   if (!response.ok || (envelope && code !== 200)) {

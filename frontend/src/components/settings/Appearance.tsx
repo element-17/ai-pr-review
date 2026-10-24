@@ -1,22 +1,23 @@
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import { useSession } from '../../hooks'
-import { usePreferences } from '../../lib/preferences'
+import { usePreferences, type PreferencesUpdate } from '../../lib/preferences'
 import type { Language } from '../../lib/types'
 import { EnumText, ErrorNotice } from '../ui'
 
 export default function Appearance() {
-  const { t, theme, language, setPreferences } = usePreferences()
+  const { t, theme, language, followTime, setPreferences } = usePreferences()
   const session = useSession()
   const [error, setError] = useState<unknown>(null)
   const [busy, setBusy] = useState(false)
-  async function change(values: { theme?: number; language?: Language }) {
+  async function change(values: PreferencesUpdate) {
     setPreferences(values)
     setError(null)
-    if (!session) return
+    const { theme, language } = values
+    if (!session || (theme === undefined && language === undefined)) return
     setBusy(true)
     try {
-      await api.patch('/users/me/settings', values)
+      await api.patch('/users/me/settings', { theme, language })
     } catch (caught) {
       setError(caught)
     } finally {
@@ -24,16 +25,16 @@ export default function Appearance() {
     }
   }
   return (
-    <section className="card">
-      <h2>{t('appearance')}</h2>
+    <section className="card" id="settings-appearance" tabIndex={-1} aria-labelledby="appearance-heading">
+      <h2 id="appearance-heading">{t('appearance')}</h2>
       <label className="field">
         <span>{t('theme')}</span>
         <select
           aria-label={t('theme')}
           value={theme}
-          disabled={busy}
+          disabled={busy || followTime}
           onChange={(event) =>
-            void change({ theme: Number(event.target.value) })
+            void change({ theme: Number(event.target.value), followTime: false })
           }
         >
           {[1, 2, 3].map((value) => (
@@ -43,6 +44,17 @@ export default function Appearance() {
           ))}
         </select>
       </label>
+      <label className="check-label">
+        <input
+          type="checkbox"
+          checked={followTime}
+          disabled={busy}
+          aria-describedby="theme-time-hint"
+          onChange={event => void change({ followTime: event.target.checked })}
+        />
+        {t('themeFollowTime')}
+      </label>
+      <p id="theme-time-hint" className="small-text muted">{t('themeTimeHint')}</p>
       <label className="field">
         <span>{t('language')}</span>
         <select

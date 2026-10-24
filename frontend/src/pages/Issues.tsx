@@ -1,9 +1,9 @@
 import { classNames } from '../lib/classNames'
 import styles from './Issues.module.css'
 import { query } from '../lib/api'
-import { navigate, useResource } from '../hooks'
+import { navigate, useCollection, useFormatting, useResource } from '../hooks'
 import { usePreferences } from '../lib/preferences'
-import type { IssueDetail, IssuePage, Page, TaskFile } from '../lib/types'
+import type { IssueDetail, IssuePage, TaskFile } from '../lib/types'
 import type { WorkspaceProps } from '../components/workspace/types'
 import IssueEditor from '../components/issues/IssueEditor'
 import {
@@ -25,6 +25,7 @@ export default function Issues({
   issueId,
 }: WorkspaceProps & { search: string; issueId?: number }) {
   const { t } = usePreferences()
+  const { number, percent } = useFormatting()
   const params = new URLSearchParams(search)
   const page = Math.max(1, Number(params.get('page')) || 1)
   const selected = issueId || Number(params.get('issueId')) || undefined
@@ -42,8 +43,9 @@ export default function Issues({
     `/tasks/${task.taskId}/issues${query(filterValues)}`,
     guestToken,
   )
-  const files = useResource<Page<TaskFile>>(
-    `/tasks/${task.taskId}/files?pageSize=200`,
+  const files = useCollection<TaskFile>(
+    `/tasks/${task.taskId}/files`,
+    200,
     guestToken,
   )
   const detail = useResource<IssueDetail>(
@@ -157,6 +159,7 @@ export default function Issues({
           </button>
         </div>
       </form>
+      <ResourceState loading={files.loading} error={files.error} retry={files.reload} />
       {filterValues.fileId && (
         <p className={classNames('muted', 'small-text')}>
           {t('file')}: #{filterValues.fileId}
@@ -172,12 +175,12 @@ export default function Issues({
           <p>
             {t('reviewed')}{' '}
             <strong>
-              {resource.data.stats.total - resource.data.stats.pending}
+              {number(resource.data.stats.total - resource.data.stats.pending)}
             </strong>{' '}
-            / {resource.data.stats.total}
+            / {number(resource.data.stats.total)}
           </p>
           <span className={classNames('muted', 'small-text')}>
-            {t('feedback1')}: {resource.data.stats.pending}
+            {t('feedback1')}: {number(resource.data.stats.pending)}
           </span>
         </div>
       )}
@@ -215,7 +218,7 @@ export default function Issues({
                       <EnumText group="category" value={issue.category} />
                     </span>
                     <span>
-                      {t('confidence')} {issue.confidence}%
+                      {t('confidence')} {percent(issue.confidence)}
                     </span>
                   </div>
                 </Link>
@@ -256,6 +259,7 @@ export default function Issues({
                 issue={detail.data}
                 guestToken={guestToken}
                 taskId={task.taskId}
+                readOnly={task.isExpired}
                 taskPath={taskPath}
                 returnTo={params.get('returnTo')}
                 onSaved={() => {

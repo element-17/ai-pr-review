@@ -1,4 +1,5 @@
 import type { MessageKey } from '../i18n/types'
+import { getGuestAccess } from './guestTasks'
 
 export type WorkspaceTab = 'overview' | 'files' | 'issues' | 'compare'
 
@@ -38,7 +39,7 @@ export function parseRoute(value: string) {
     pathname, search, taskId, tab,
     fileId: tab === 'files' ? childId : undefined,
     issueId: tab === 'issues' ? childId : undefined,
-    guestToken: new URLSearchParams(search).get('guestToken') || '',
+    guestToken: new URLSearchParams(search).get('guestToken') || (taskId ? getGuestAccess(taskId)?.token : '') || '',
     pageTitle: taskId ? tab : titles[pathname] || 'notFound',
   }
 }

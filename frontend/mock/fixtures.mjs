@@ -670,6 +670,7 @@ export function createTask({ url, reportLanguage = 'zh-CN', guest }) {
     errorMessage: null,
     isGuest: guest,
     guestToken: guest ? `guest-${taskId}-${Math.random().toString(36).slice(2, 10)}` : null,
+    expireTime: guest ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
     canCancel: true,
     canRetry: false,
     canDelete: false,

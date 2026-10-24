@@ -17,6 +17,7 @@ export function Pagination({
 }) {
   const { t, language } = usePreferences()
   const pages = Math.max(1, Math.ceil(total / pageSize))
+  const number = (value: number) => new Intl.NumberFormat(language).format(value)
   return (
     <div className={classNames(styles['pagination'], compact && styles.compact)}>
       <span>
@@ -32,7 +33,7 @@ export function Pagination({
           {t('previous')}
         </button>
         <span>
-          {page} / {pages}
+          {number(page)} / {number(pages)}
         </span>
         <button
           className={classNames('button', 'small')}

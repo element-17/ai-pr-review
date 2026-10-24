@@ -1,7 +1,7 @@
 import { classNames } from '../lib/classNames'
 import styles from './Files.module.css'
 import { query } from '../lib/api'
-import { navigate, useResource } from '../hooks'
+import { navigate, useFormatting, useResource } from '../hooks'
 import { usePreferences } from '../lib/preferences'
 import type { FileDiff, Page, TaskFile } from '../lib/types'
 import type { WorkspaceProps } from '../components/workspace/types'
@@ -26,6 +26,7 @@ export default function Files({
   fileId: routeFileId,
 }: WorkspaceProps & { search: string; fileId?: number }) {
   const { t } = usePreferences()
+  const { number } = useFormatting()
   const params = new URLSearchParams(search)
   const page = Math.max(1, Number(params.get('page')) || 1)
   const view = params.get('view') === 'split' ? 'split' : 'unified'
@@ -137,7 +138,7 @@ export default function Files({
         <aside className={classNames('card', styles['file-tree'])}>
           <div className="section-heading">
             <h2>{t('changedFiles')}</h2>
-            <span className="count">{resource.data?.total ?? '—'}</span>
+            <span className="count">{resource.data ? number(resource.data.total) : '—'}</span>
           </div>
           <ResourceState
             loading={resource.loading}
@@ -164,8 +165,8 @@ export default function Files({
                     <div>
                       <code>{file.filePath}</code>
                       <div className={styles['file-tree-meta']}>
-                        <span className="positive">+{file.addLines}</span>
-                        <span className="negative">−{file.deleteLines}</span>
+                        <span className="positive">+{number(file.addLines)}</span>
+                        <span className="negative">−{number(file.deleteLines)}</span>
                         <span>
                           <EnumText group="fileStatus" value={file.status} />
                         </span>
@@ -218,8 +219,8 @@ export default function Files({
                       value={detail.data.changeType}
                     />{' '}
                     · {detail.data.language || '—'} ·{' '}
-                    <span className="positive">+{detail.data.addLines}</span>{' '}
-                    <span className="negative">−{detail.data.deleteLines}</span>
+                    <span className="positive">+{number(detail.data.addLines)}</span>{' '}
+                    <span className="negative">−{number(detail.data.deleteLines)}</span>
                   </p>
                   {detail.data.oldPath && (
                     <p className={classNames('muted', 'small-text')}>

@@ -53,7 +53,7 @@ function requireUser(ctx) {
 function authorizeTask(ctx, task) {
   const guestToken = ctx.headers['x-guest-token']
   if (task.isGuest) {
-    if (guestToken !== task.guestToken)
+    if (guestToken !== task.guestToken || (task.expireTime && new Date(task.expireTime).getTime() <= Date.now()))
       throw new HttpError(403, fail(403, '游客令牌无效'))
     return { guestToken }
   }
@@ -163,7 +163,16 @@ function route(method, pathname, ctx) {
     }
     if (method === 'GET' && action === 'me') {
       const current = requireUser(ctx)
-      return ok(current.userInfo)
+      const user = users.find((item) => item.id === current.userInfo.id)
+      return ok({
+        ...current.userInfo,
+        email: user.email,
+        phone: user.phone,
+        status: user.status,
+        lastLoginTime: user.lastLoginTime,
+        createTime: user.createTime,
+        updateTime: user.updateTime,
+      })
     }
   }
 
@@ -247,12 +256,11 @@ function route(method, pathname, ctx) {
 
   // ---- PR 预览 ----
   if (head === 'prs' && rest[0] === 'preview' && method === 'POST') {
-    requireUser(ctx)
     const { url } = ctx.body || {}
     if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/[1-9]\d*\/?$/.test(String(url || '')))
       throw new HttpError(400, fail(400, 'PR 地址不合法，应为 https://github.com/{owner}/{repo}/pull/{number}'))
     const match = /github\.com\/([\w.-]+)\/([\w.-]+)\/pull\/(\d+)/.exec(url)
-    const reusable = tasks.find(
+    const reusable = ctx.session && tasks.find(
       (task) =>
         !task.isGuest &&
         task.status === 3 &&
@@ -281,22 +289,21 @@ function route(method, pathname, ctx) {
   // ---- 任务 ----
   if (head === 'tasks') {
     if (rest.length === 0) {
-      requireUser(ctx)
-      if (method === 'GET') return ok(listTasks(q))
+      if (method === 'GET') { requireUser(ctx); return ok(listTasks(q)) }
       if (method === 'POST') {
         const { url, reportLanguage } = ctx.body || {}
         if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/[1-9]\d*\/?$/.test(String(url || '')))
           throw new HttpError(400, fail(400, 'PR 地址不合法'))
-        const task = createTask({ url, reportLanguage: reportLanguage || 'zh-CN', guest: false })
+        const task = createTask({ url, reportLanguage: reportLanguage || 'zh-CN', guest: !ctx.session })
         return ok({
           taskId: task.taskId,
           status: task.status,
           stage: task.stage,
           progress: task.progress,
           reportLanguage: task.reportLanguage,
-          isGuest: false,
-          guestToken: null,
-          expireTime: null,
+          isGuest: task.isGuest,
+          guestToken: task.guestToken,
+          expireTime: task.expireTime,
           shareUrl: null,
           createTime: task.createTime,
           retryOfTaskId: null,
@@ -343,12 +350,11 @@ function route(method, pathname, ctx) {
       return ok({ taskId, status: current.status, finishTime: current.finishTime }, '任务已取消')
     }
     if (rest[1] === 'retry' && method === 'POST') {
-      requireUser(ctx)
       const current = materialize(task)
       const retried = createTask({
         url: `https://github.com/${current.pr.repoFullName}/pull/${current.pr.prNumber}`,
         reportLanguage: current.reportLanguage,
-        guest: false,
+        guest: current.isGuest,
       })
       return ok({
         taskId: retried.taskId,
@@ -356,9 +362,9 @@ function route(method, pathname, ctx) {
         stage: retried.stage,
         progress: retried.progress,
         reportLanguage: retried.reportLanguage,
-        isGuest: false,
-        guestToken: null,
-        expireTime: null,
+        isGuest: retried.isGuest,
+        guestToken: retried.guestToken,
+        expireTime: retried.expireTime,
         shareUrl: null,
         createTime: retried.createTime,
         retryOfTaskId: taskId,

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { splitDiff, toDiffLines } from '../../lib/diff'
 import type { DiffLine } from '../../lib/diff'
 import { usePreferences } from '../../lib/preferences'
+import { useFormatting } from '../../hooks'
 import type { FileDiff, Issue } from '../../lib/types'
 import type { WorkspaceProps } from '../workspace/types'
 import { Icon, Link } from '../ui'
@@ -28,6 +29,7 @@ export default function DiffViewer({
   returnTo: string
 }) {
   const { t } = usePreferences()
+  const { number } = useFormatting()
   const scrollRef = useRef<HTMLDivElement>(null)
   const key = `${returnTo.split('?')[0]}:${file.fileId}:${view}`
   const lines = toDiffLines(file.rows)
@@ -178,7 +180,7 @@ export default function DiffViewer({
           className={classNames('button', styles['load-more'])}
           onClick={() => setVisible(count + 250)}
         >
-          {t('loadMore')} ({Math.min(count, lines.length)}/{lines.length})
+          {t('loadMore')} ({number(Math.min(count, lines.length))}/{number(lines.length)})
         </button>
       )}
     </>

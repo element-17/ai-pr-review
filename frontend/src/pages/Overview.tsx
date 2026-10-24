@@ -108,7 +108,7 @@ export default function Overview({
                     <code>{file.filePath}</code>
                     <p>{file.priorityReason}</p>
                   </div>
-                  <span className="count">{file.issueCount}</span>
+                  <span className="count">{number(file.issueCount)}</span>
                   <Icon name="chevron" size={16} />
                 </Link>
               ))
@@ -136,7 +136,7 @@ export default function Overview({
               {[4, 3, 2, 1].map((value) => (
                 <Link to={taskPath('/issues', { severity: value })} key={value}>
                   <Badge group="severity" value={value} />
-                  <strong>{severityCounts[value - 1]}</strong>
+                  <strong>{number(severityCounts[value - 1])}</strong>
                 </Link>
               ))}
             </div>
@@ -144,7 +144,7 @@ export default function Overview({
             <div className="spread">
               <h3>{t('reviewProgress')}</h3>
               <span>
-                {stats.issues.total - stats.issues.pending}/{stats.issues.total}
+                {number(stats.issues.total - stats.issues.pending)}/{number(stats.issues.total)}
               </span>
             </div>
             <progress
@@ -156,22 +156,22 @@ export default function Overview({
               className="text-link"
               to={taskPath('/issues', { feedbackStatus: 1 })}
             >
-              {t('feedback1')} ({stats.issues.pending}) →
+              {t('feedback1')} ({number(stats.issues.pending)}) →
             </Link>
           </section>
           <section className="card">
             <h2>{t('coverage')}</h2>
             <div className={styles['coverage-number']}>
-              {stats.files.analyzed}
-              <span> / {stats.files.total}</span>
+              {number(stats.files.analyzed)}
+              <span> / {number(stats.files.total)}</span>
             </div>
             <p className="muted">{t('analyzed')}</p>
             <div className={styles['coverage-counts']}>
               <span>
-                {t('skipped')} <strong>{stats.files.skipped}</strong>
+                {t('skipped')} <strong>{number(stats.files.skipped)}</strong>
               </span>
               <span>
-                {t('failed')} <strong>{stats.files.failed}</strong>
+                {t('failed')} <strong>{number(stats.files.failed)}</strong>
               </span>
             </div>
             <p className={classNames('small-text', 'muted')}>
@@ -187,10 +187,15 @@ export default function Overview({
               {t('model')}: {task.modelName || '—'}
             </p>
             <p className={classNames('small-text', 'muted')}>
-              {t('maxFiles')}: {task.analysisConfig.maxFileCount}
+              {t('checks')}: {task.analysisConfig.checkCategories.map(category => (
+                <span key={category}><EnumText group="category" value={category} />{' '}</span>
+              ))}
             </p>
             <p className={classNames('small-text', 'muted')}>
-              {t('maxDiff')}: {task.analysisConfig.maxDiffLines}
+              {t('maxFiles')}: {number(task.analysisConfig.maxFileCount)}
+            </p>
+            <p className={classNames('small-text', 'muted')}>
+              {t('maxDiff')}: {number(task.analysisConfig.maxDiffLines)}
             </p>
             <p className={classNames('small-text', 'muted')}>
               {task.analysisConfig.ignoreDirs.join(', ') || '—'}

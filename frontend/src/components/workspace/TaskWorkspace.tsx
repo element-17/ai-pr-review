@@ -1,9 +1,10 @@
 import { classNames } from '../../lib/classNames'
 import styles from './TaskWorkspace.module.css'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { analysisEnabled, api, deletionEnabled, query } from '../../lib/api'
-import { navigate, useResource, useSession, useTaskProgress } from '../../hooks'
+import { navigate, useFormatting, useResource, useSession, useTaskProgress } from '../../hooks'
+import { getGuestAccess, rememberGuestTask } from '../../lib/guestTasks'
 import { usePreferences } from '../../lib/preferences'
 import type { CreatedTask, TaskDetail } from '../../lib/types'
 import type { MessageKey } from '../../i18n/types'
@@ -32,6 +33,7 @@ export default function TaskWorkspace({
   children: (props: WorkspaceProps) => ReactNode
 }) {
   const { t } = usePreferences()
+  const { number, percent } = useFormatting()
   const session = useSession()
   const retryKey = useRef<string | null>(null)
   const resource = useResource<TaskDetail>(`/tasks/${taskId}`, guestToken)
@@ -39,6 +41,9 @@ export default function TaskWorkspace({
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState<'copied' | 'copyFailed' | null>(null)
   const task = resource.data
+  useEffect(() => {
+    if (task?.isGuest && guestToken) rememberGuestTask({ taskId, guestToken, expireTime: task.expireTime || null })
+  }, [task?.isGuest, task?.expireTime, taskId, guestToken])
   const reloadTask = resource.reload
   const isRunning = !!task && [1, 2].includes(task.status)
   const { progress, error: pollError, retry: retryPolling } = useTaskProgress(taskId, isRunning, guestToken, reloadTask)
@@ -69,6 +74,7 @@ export default function TaskWorkspace({
           undefined,
           { guestToken, idempotencyKey: retryKey.current },
         )
+        rememberGuestTask(result)
         navigate(
           `/tasks/${result.taskId}${query({ guestToken: result.guestToken || undefined })}`,
         )
@@ -94,10 +100,15 @@ export default function TaskWorkspace({
       />
     )
   const current = isRunning && progress?.taskId === taskId ? progress : task
+  const reanalysisPath = `/${query({ url: `https://github.com/${task.pr.repoFullName}/pull/${task.pr.prNumber}`, reportLanguage: task.reportLanguage })}`
+  const expireTime = task.expireTime || getGuestAccess(taskId)?.expireTime
+  const reanalysisButton = analysisEnabled ? (
+    <Link className="button small" to={reanalysisPath}>{t('reanalyze')}</Link>
+  ) : <button className="button small" disabled title={t('analysisUnavailable')}>{t('reanalyze')}</button>
   return (
     <>
       <div className={styles['breadcrumbs']}>
-        <Link to="/tasks">{t('tasks')}</Link>
+        <Link to={session && !task.isGuest ? '/tasks' : '/'}>{t(session && !task.isGuest ? 'tasks' : session ? 'home' : 'guestHome')}</Link>
         <Icon name="chevron" size={13} />
         <span>#{taskId}</span>
       </div>
@@ -139,7 +150,13 @@ export default function TaskWorkspace({
           </button>
         </div>
       </header>
-      {task.isExpired && <Notice>{t('expiredHint')}</Notice>}
+      {task.isGuest && (
+        <Notice>
+          {expireTime ? <>{t('guestExpires')} <DateText value={expireTime} /></> : t('guestExpiryUnknown')}
+          <p>{t('guestStorageHint')}</p>
+        </Notice>
+      )}
+      {task.isExpired && <Notice><p>{t('expiredHint')}</p><p>{t('expiredReadOnly')}</p>{reanalysisButton}</Notice>}
       {[4, 5, 6].includes(current.status) && (
         <Notice danger={current.status === 5}>
           {t(
@@ -165,7 +182,7 @@ export default function TaskWorkspace({
             <strong>
               <EnumText group="stage" value={current.stage} />
             </strong>
-            <span>{current.progress}%</span>
+            <span>{percent(current.progress)}</span>
           </div>
           <progress
             value={current.progress}
@@ -199,7 +216,7 @@ export default function TaskWorkspace({
             { key: 'issues', suffix: '/issues', icon: 'shield' },
             { key: 'compare', suffix: '/compare', icon: 'compare' },
           ] as const
-        ).map((item) => (
+        ).filter(item => item.key !== 'compare' || (session && !task.isGuest)).map((item) => (
           <Link
             key={item.key}
             to={taskPath(item.suffix)}
@@ -208,7 +225,7 @@ export default function TaskWorkspace({
             <Icon name={item.icon} size={17} />
             {t(item.key)}
             {item.key === 'issues' && (
-              <span className="count">{task.stats.issues.total}</span>
+              <span className="count">{number(task.stats.issues.total)}</span>
             )}
           </Link>
         ))}
@@ -222,6 +239,7 @@ export default function TaskWorkspace({
           {t('github')}
         </ExternalLink>
         <div className="actions">
+          {!task.isExpired && [3, 4, 5, 6].includes(task.status) && reanalysisButton}
           {guestToken && (
             <button
               className={classNames('button', 'small')}

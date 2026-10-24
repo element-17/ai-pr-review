@@ -2,9 +2,9 @@ import { classNames } from '../lib/classNames'
 import styles from './Compare.module.css'
 import { useState } from 'react'
 import { comparisonEnabled, query } from '../lib/api'
-import { navigate, useResource, useSession } from '../hooks'
+import { navigate, useCollection, useFormatting, useResource, useSession } from '../hooks'
 import { usePreferences } from '../lib/preferences'
-import type { Comparison, Page, Task } from '../lib/types'
+import type { Comparison, Task } from '../lib/types'
 import type { WorkspaceProps } from '../components/workspace/types'
 import {
   Badge,
@@ -22,20 +22,22 @@ export default function Compare({
   search,
 }: WorkspaceProps & { search: string }) {
   const { t } = usePreferences()
+  const { number, dateTime } = useFormatting()
   const session = useSession()
   const params = new URLSearchParams(search)
   const baseId = Number(params.get('base')) || task.taskId
   const targetId = Number(params.get('target')) || undefined
   const [invalid, setInvalid] = useState(false)
-  const tasks = useResource<Page<Task>>(
+  const tasks = useCollection<Task>(
     session && !task.isGuest
-      ? `/tasks${query({ repo: task.pr.repoFullName, prNumber: task.pr.prNumber, pageSize: 100 })}`
+      ? `/tasks${query({ repo: task.pr.repoFullName, prNumber: task.pr.prNumber, sort: 'createTime_desc' })}`
       : null,
+    100,
   )
   const eligible =
     tasks.data?.records.filter((item) => [3, 4].includes(item.status)) || []
   const comparison = useResource<Comparison>(
-    session && comparisonEnabled && targetId && baseId !== targetId
+    session && !task.isGuest && comparisonEnabled && targetId && baseId !== targetId
       ? `/tasks/${baseId}/compare/${targetId}`
       : null,
   )
@@ -80,7 +82,7 @@ export default function Compare({
             <option value="">{t('baseVersion')}</option>
             {eligible.map((item) => (
               <option value={item.taskId} key={item.taskId}>
-                #{item.taskId} · {item.headSha.slice(0, 8)} · {item.createTime}
+                #{item.taskId} · {item.headSha.slice(0, 8)} · {dateTime(item.createTime)}
               </option>
             ))}
           </select>
@@ -97,7 +99,7 @@ export default function Compare({
             <option value="">{t('targetVersion')}</option>
             {eligible.map((item) => (
               <option value={item.taskId} key={item.taskId}>
-                #{item.taskId} · {item.headSha.slice(0, 8)} · {item.createTime}
+                #{item.taskId} · {item.headSha.slice(0, 8)} · {dateTime(item.createTime)}
               </option>
             ))}
           </select>
@@ -117,7 +119,10 @@ export default function Compare({
       />
       {result && (
         <>
-          <Notice>{t('matchingWarning')}</Notice>
+          <Notice>
+            {t('matchingWarning')}
+            {result.matching.note && <p className="preserve-lines">{result.matching.note}</p>}
+          </Notice>
           <div className={styles['comparison-versions']}>
             {(['base', 'target'] as const).map((key) => (
               <div className="card" key={key}>
@@ -136,13 +141,33 @@ export default function Compare({
                       : 'english',
                   )}
                 </p>
+                <Badge group="status" value={result[key].status} />
+                {result[key].stats && (
+                  <>
+                    <dl className={styles['version-stats']}>
+                      {(['total', 'pending', 'accepted', 'resolved', 'falsePositive'] as const).map((stat, index) => (
+                        <div key={stat}>
+                          <dt>{t(index === 0 ? 'issues' : `feedback${index}` as 'feedback1' | 'feedback2' | 'feedback3' | 'feedback4')}</dt>
+                          <dd>{number(result[key].stats!.issues[stat])}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <div className="actions wrap">
+                      {(['low', 'medium', 'high', 'critical'] as const).map((severity, index) => (
+                        <span key={severity}><Badge group="severity" value={index + 1} /> {number(result[key].stats!.issues.bySeverity[severity])}</span>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
           <section className={classNames('card', styles['comparison-summary'])}>
             {(['purpose', 'changes', 'impacts'] as const).map((key) => (
               <div key={key}>
-                <h3>{t(key)}</h3>
+                <h3>{t(key)} <span className={styles['change-label']} data-changed={result.summary[key].changed}>
+                  {t(result.summary[key].changed ? 'summaryChanged' : 'summaryUnchanged')}
+                </span></h3>
                 <div className={styles['comparison-versions']}>
                   <p className="preserve-lines">
                     {result.summary[key].base || t('noSummary')}
@@ -166,7 +191,7 @@ export default function Compare({
                 <div className="section-heading">
                   <h2>{t(group.title)}</h2>
                   <span className="count">
-                    {result.issues[group.key].length}
+                    {number(result.issues[group.key].length)}
                   </span>
                 </div>
                 {result.issues[group.key].length ? (
@@ -193,8 +218,11 @@ export default function Compare({
                           <p
                             className={classNames('text-warning', 'small-text')}
                           >
-                            {t('matchingWarning')}
+                            {t('lineShifted')}
                           </p>
+                        )}
+                        {'matchConfidence' in issue && issue.matchConfidence === 'low' && (
+                          <p className="text-warning small-text">{t('lowMatchConfidence')}</p>
                         )}
                       </Link>
                     )

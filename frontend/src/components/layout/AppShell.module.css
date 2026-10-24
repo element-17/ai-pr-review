@@ -102,6 +102,33 @@
   padding: 20px 7px 0;
   border-top: 1px solid #4a4e41;
 }
+.profile-trigger {
+  width: 100%;
+  border-inline: 0;
+  border-bottom: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.profile-trigger:hover,
+.mobile-profile:hover {
+  background: #373b31;
+}
+.profile-trigger:focus-visible,
+.mobile-profile:focus-visible {
+  outline: 2px solid #e09167;
+  outline-offset: 4px;
+}
+.mobile-profile {
+  display: none;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
 .user-avatar {
   display: flex;
   align-items: center;
@@ -120,7 +147,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.user-summary div > span {
+.user-info > span {
   font-size: 10px;
   color: #a6ac99;
   display: block;
@@ -236,7 +263,7 @@
   .main-nav a > :not(svg),
   .sidebar-note,
   .sidebar-imprint,
-  .user-summary div {
+  .user-info {
     display: none;
   }
   .main-nav {
@@ -294,6 +321,9 @@
   }
   .sidebar-bottom {
     display: none;
+  }
+  .mobile-profile {
+    display: inline-flex;
   }
   .app-shell {
     flex-direction: column;

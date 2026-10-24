@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { api } from './lib/api'
+import { api, ApiError } from './lib/api'
 import { setSession } from './lib/session'
 import { navigate, useRoute, useSession } from './hooks'
 import { PreferencesProvider } from './lib/PreferencesProvider'
-import { usePreferences } from './lib/preferences'
+import { usePreferences, type PreferencesUpdate } from './lib/preferences'
 import type { Settings as UserSettings, User } from './lib/types'
 import { Empty, Link } from './components/ui'
 import { parseRoute } from './lib/routes'
 import AppShell from './components/layout/AppShell'
 import Home from './pages/Home'
+import GuestHome from './pages/GuestHome'
 import Auth from './pages/Auth'
 import Tasks from './pages/Tasks'
 import TaskWorkspace from './components/workspace/TaskWorkspace'
@@ -35,33 +36,33 @@ function Application() {
   const [error, setError] = useState<unknown>(null)
   const [logoutBusy, setLogoutBusy] = useState(false)
   const [appearanceBusy, setAppearanceBusy] = useState(false)
-  const { pathname, search, taskId, tab, guestToken, pageTitle, fileId, issueId } = parseRoute(route)
+  const { pathname, search, taskId, tab, guestToken, pageTitle: routeTitle, fileId, issueId } = parseRoute(route)
+  const pageTitle = !session && pathname === '/' ? 'guestHome' : routeTitle
   const userId = session?.userInfo.id
   useEffect(() => {
     if (!userId) return
     const controller = new AbortController()
     api.get<User>('/auth/me', { signal: controller.signal }).catch((caught) => {
-      if (!controller.signal.aborted) setError(caught)
+      if (!controller.signal.aborted && !(caught instanceof ApiError && caught.code === 401)) setError(caught)
     })
     return () => controller.abort()
   }, [userId])
   useEffect(() => {
     document.title = `${t(pageTitle)} · AI PR Review`
   }, [pageTitle, t])
-  async function changeAppearance(values: {
-    language?: 'zh-CN' | 'en-US'
-    theme?: number
-  }) {
+  async function changeAppearance(values: PreferencesUpdate) {
     setAppearanceBusy(true)
     setPreferences(values)
-    if (!session) { setAppearanceBusy(false); return }
+    const { theme, language } = values
+    if (!session || (theme === undefined && language === undefined)) { setAppearanceBusy(false); return }
     try {
-      await api.patch<UserSettings>('/users/me/settings', values)
+      await api.patch<UserSettings>('/users/me/settings', { theme, language })
     } catch (caught) {
       setError(caught)
     } finally { setAppearanceBusy(false) }
   }
   async function logout() {
+    if (logoutBusy || !window.confirm(t('logoutConfirm'))) return
     setError(null)
     setLogoutBusy(true)
     try {
@@ -70,7 +71,7 @@ function Application() {
       setError(caught)
     } finally {
       setSession(null)
-      navigate('/')
+      navigate('/login')
       setLogoutBusy(false)
     }
   }
@@ -88,7 +89,7 @@ function Application() {
       onAppearanceChange={changeAppearance}
     >
           {pathname === '/' ? (
-            <Home />
+            session ? <Home search={search} /> : <GuestHome search={search} />
           ) : pathname === '/login' || pathname === '/register' ? (
             <Auth
               key={pathname}

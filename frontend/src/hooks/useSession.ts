@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { getSession, readSessionSnapshot, SESSION_EVENT } from '../lib/session'
+import { parseSessionSnapshot, readSessionSnapshot, SESSION_EVENT } from '../lib/session'
 
 function subscribe(callback: () => void) {
   window.addEventListener(SESSION_EVENT, callback)
@@ -7,6 +7,6 @@ function subscribe(callback: () => void) {
 }
 
 export function useSession() {
-  useSyncExternalStore(subscribe, readSessionSnapshot)
-  return getSession()
+  const snapshot = useSyncExternalStore(subscribe, readSessionSnapshot)
+  return parseSessionSnapshot(snapshot)
 }

@@ -1,11 +1,12 @@
 import { classNames } from '../../lib/classNames'
 import styles from './AppShell.module.css'
-import type { ReactNode } from 'react'
-import type { Language } from '../../i18n/types'
+import { useState, type ReactNode } from 'react'
 import type { MessageKey } from '../../i18n/types'
 import type { User } from '../../lib/types'
-import { usePreferences } from '../../lib/preferences'
+import { usePreferences, type PreferencesUpdate } from '../../lib/preferences'
 import ChangeLanguage from '../common/ChangeLanguage'
+import UserAvatar from '../account/UserAvatar'
+import UserProfileDialog from '../account/UserProfileDialog'
 import { ErrorNotice, Icon, Link } from '../ui'
 
 interface AppShellProps {
@@ -18,10 +19,7 @@ interface AppShellProps {
   appearanceBusy: boolean
   onDismissError: () => void
   onLogout: () => Promise<void>
-  onAppearanceChange: (values: {
-    language?: Language
-    theme?: number
-  }) => Promise<void>
+  onAppearanceChange: (values: PreferencesUpdate) => Promise<void>
   children: ReactNode
 }
 
@@ -38,12 +36,24 @@ export default function AppShell({
   onAppearanceChange,
   children,
 }: AppShellProps) {
-  const { t, theme } = usePreferences()
-  const nav = [
+  const { t, resolvedTheme } = usePreferences()
+  const [profileUserId, setProfileUserId] = useState<number | null>(null)
+  if (profileUserId !== null && profileUserId !== user?.id) setProfileUserId(null)
+  const profileOpen = !!user && profileUserId === user.id
+  const userSummary = (
+    <>
+      <UserAvatar user={user} className={styles['user-avatar']} />
+      <span className={styles['user-info']}>
+        <strong>{user?.nickname || user?.username || t('guest')}</strong>
+        <span>{user ? user.role : 'PR Review'}</span>
+      </span>
+    </>
+  )
+  const nav = user ? [
     { to: '/', title: 'home', icon: 'plus' },
     { to: '/tasks', title: 'tasks', icon: 'history' },
     { to: '/settings', title: 'settings', icon: 'settings' },
-  ] as const
+  ] as const : [{ to: '/', title: 'guestHome', icon: 'globe' }] as const
   return (
     <div className={styles['app-shell']}>
       <a className={styles['skip-link']} href="#main-content">
@@ -65,6 +75,8 @@ export default function AppShell({
             <Link
               key={item.to}
               to={item.to}
+              aria-label={t(item.title)}
+              title={t(item.title)}
               aria-current={
                 item.title === pageTitle || (taskPage && item.title === 'tasks')
                   ? 'page'
@@ -90,18 +102,35 @@ export default function AppShell({
             <Icon name="shield" size={21} />
             <p>{t('connection')}</p>
           </div>
-          <div className={styles['user-summary']}>
-            <span className={styles['user-avatar']}>
-              {(user?.nickname || user?.username || 'G')
-                .slice(0, 1)
-                .toUpperCase()}
-            </span>
-            <div>
-              <strong>{user?.nickname || user?.username || t('guest')}</strong>
-              <span>{user ? user.role : 'PR Review'}</span>
-            </div>
-          </div>
+          {user ? (
+            <button
+              type="button"
+              className={classNames(styles['user-summary'], styles['profile-trigger'])}
+              aria-label={t('viewProfile')}
+              title={t('viewProfile')}
+              aria-haspopup="dialog"
+              aria-controls="user-profile-dialog"
+              aria-expanded={profileOpen}
+              onClick={() => setProfileUserId(user.id)}
+            >
+              {userSummary}
+            </button>
+          ) : <div className={styles['user-summary']}>{userSummary}</div>}
         </div>
+        {user && (
+          <button
+            type="button"
+            className={styles['mobile-profile']}
+            aria-label={t('viewProfile')}
+            title={t('viewProfile')}
+            aria-haspopup="dialog"
+            aria-controls="user-profile-dialog"
+            aria-expanded={profileOpen}
+            onClick={() => setProfileUserId(user.id)}
+          >
+            <UserAvatar user={user} className={styles['user-avatar']} />
+          </button>
+        )}
       </aside>
       <div className={styles['main-shell']}>
         <header className={styles['topbar']}>
@@ -116,13 +145,14 @@ export default function AppShell({
               }
             />
             <button
+              type="button"
               className="icon-button"
               disabled={appearanceBusy}
-              aria-label={t('theme')}
-              title={`${t('theme')}: ${t(`theme${theme}` as MessageKey)}`}
-              onClick={() => void onAppearanceChange({ theme: (theme % 3) + 1 })}
+              aria-label={t(resolvedTheme === 'dark' ? 'switchToLight' : 'switchToDark')}
+              title={t(resolvedTheme === 'dark' ? 'switchToLight' : 'switchToDark')}
+              onClick={() => void onAppearanceChange({ theme: resolvedTheme === 'dark' ? 1 : 2, followTime: false })}
             >
-              <Icon name="sun" size={18} />
+              <Icon name={resolvedTheme === 'dark' ? 'sun' : 'moon'} size={18} />
             </button>
             <span className={styles['topbar-divider']} />
             {user ? (
@@ -169,6 +199,7 @@ export default function AppShell({
           <span>© 2026</span>
         </footer>
       </div>
+      {profileOpen && <UserProfileDialog key={user.id} onClose={() => setProfileUserId(null)} />}
     </div>
   )
 }

@@ -1,8 +1,16 @@
 .settings-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 210px;
   gap: 28px;
-  max-width: 1000px;
+  max-width: 1100px;
+  align-items: start;
+}
+.settings-content {
+  grid-column: 1;
+  grid-row: 1;
+}
+.settings-content section[id] {
+  scroll-margin-top: 28px;
 }
 .settings-notice {
   align-self: start;
@@ -16,8 +24,15 @@
 .settings-notice p {
   font-size: 12px;
 }
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   .settings-layout {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .settings-content {
+    grid-row: 2;
+  }
+  .settings-content section[id] {
+    scroll-margin-top: 145px;
   }
 }

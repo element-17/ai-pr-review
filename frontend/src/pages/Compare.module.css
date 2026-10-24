@@ -25,6 +25,30 @@
 .comparison-summary {
   margin-bottom: 22px;
 }
+.version-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 18px 0;
+}
+.version-stats dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.version-stats dd {
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+.change-label {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.change-label[data-changed='true'] {
+  color: var(--accent);
+}
 .comparison-summary .comparison-versions {
   margin: 0;
 }

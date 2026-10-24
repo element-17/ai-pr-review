@@ -12,8 +12,12 @@ export function readSessionSnapshot() {
 }
 
 export function getSession(): Session | null {
+  return parseSessionSnapshot(readSessionSnapshot())
+}
+
+export function parseSessionSnapshot(snapshot: string | null): Session | null {
   try {
-    const value: unknown = JSON.parse(readSessionSnapshot() || 'null')
+    const value: unknown = JSON.parse(snapshot || 'null')
     if (!value || typeof value !== 'object') return null
     const session = value as Partial<Session>
     const user = session.userInfo

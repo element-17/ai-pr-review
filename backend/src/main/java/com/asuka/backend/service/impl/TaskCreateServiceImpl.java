@@ -114,7 +114,7 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         task.setStatus(1);
         task.setStage(1);
         task.setProgress(0);
-        task.setModelName(aiProperties.getDeepseek().getModel());
+        task.setModelName(aiProperties.getActiveModelName());
         task.setAnalysisConfig(toJson(config));
         task.setIsDeleted(0);
         if (userId == null) {
@@ -156,8 +156,7 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         task.setStatus(1);
         task.setStage(1);
         task.setProgress(0);
-        task.setModelName(StringUtils.hasText(original.getModelName())
-                ? original.getModelName() : aiProperties.getDeepseek().getModel());
+        task.setModelName(aiProperties.getActiveModelName());
         task.setAnalysisConfig(original.getAnalysisConfig());
         task.setRetryOfTaskId(original.getId());
         task.setIsDeleted(0);

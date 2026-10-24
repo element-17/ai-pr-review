@@ -15,7 +15,7 @@ docker compose up -d --build
 
 ## 前端
 
-前端不是本仓库交付物。构建后把 `frontend/dist` 内容复制到 `deploy/nginx/html/`，或者把 Compose 中的静态目录挂载改成实际前端产物目录。未提供前端时，Nginx 的 `/api/` 仍可正常反向代理。
+正式前端位于 `frontend/`（React + TypeScript + Vite）。在该目录执行 `npm ci`、`npm run build`，再把 `frontend/dist` 内容复制到 `deploy/nginx/html/`，或者把 Compose 中的静态目录挂载改成实际产物目录。现有 Nginx 已配置 `/api/` 反向代理和页面路由回退；仓库中的占位页需由构建产物替换。当前完成本地真实后端联调，Docker/Nginx 目标机部署仍须复验。
 
 ## 注意
 
