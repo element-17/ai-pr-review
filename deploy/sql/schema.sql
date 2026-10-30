@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `user`
     `id`              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     `username`        VARCHAR(50)  NOT NULL COMMENT '登录名',
     `password`        VARCHAR(100) NOT NULL COMMENT 'BCrypt 加密后的密码',
+    `password_set`    TINYINT      NOT NULL DEFAULT 1 COMMENT '是否已设置可用密码：1 是，0 否（GitHub 创建）',
     `nickname`        VARCHAR(50)           DEFAULT NULL COMMENT '昵称',
     `email`           VARCHAR(100)          DEFAULT NULL COMMENT '邮箱',
     `phone`           VARCHAR(20)           DEFAULT NULL COMMENT '手机号',
@@ -59,7 +60,32 @@ VALUES ('demo', '$2a$10$UP4ZnXtul2Wl9r.PIqb20.dKoeDdbFcN0s4ONPqrGts6UD4cxUH0q',
 ON DUPLICATE KEY UPDATE `username` = `username`;
 
 -- ------------------------------------------------------------
--- 2. 用户设置
+-- 2. GitHub 账号绑定
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_github_binding`
+(
+    `user_id`                 BIGINT       NOT NULL COMMENT '本地用户 ID，关联 user.id',
+    `github_id`               BIGINT       NOT NULL COMMENT 'GitHub 数字用户 ID，唯一标识',
+    `github_login`            VARCHAR(64)  NOT NULL COMMENT 'GitHub 登录名，仅作展示，可变',
+    `avatar_url`              VARCHAR(500)          DEFAULT NULL COMMENT 'GitHub 头像地址',
+    `email`                   VARCHAR(255)          DEFAULT NULL COMMENT 'GitHub 主邮箱，仅作展示，不作为唯一键',
+    `access_token_ciphertext` TEXT         NOT NULL COMMENT 'AES-GCM 加密后的 GitHub access token',
+    `scope`                   VARCHAR(255)          DEFAULT NULL COMMENT 'GitHub 返回的授权 scope',
+    `token_status`            TINYINT      NOT NULL DEFAULT 1 COMMENT '令牌状态：1 有效，2 失效，3 已撤销',
+    `authorized_at`           DATETIME     NOT NULL COMMENT '最近一次授权时间',
+    `last_validated_at`       DATETIME              DEFAULT NULL COMMENT '最近一次校验时间',
+    `create_time`             DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`             DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`user_id`),
+    UNIQUE KEY `uk_github_id` (`github_id`),
+    KEY `idx_token_status` (`token_status`),
+    CONSTRAINT `fk_binding_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COMMENT = '用户 GitHub 账号绑定';
+
+-- ------------------------------------------------------------
+-- 3. 用户设置
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `user_setting`
 (

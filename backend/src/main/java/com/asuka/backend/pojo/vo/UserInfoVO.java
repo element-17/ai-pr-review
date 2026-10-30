@@ -26,4 +26,7 @@ public class UserInfoVO {
 
     @Schema(description = "角色")
     private String role;
+
+    @Schema(description = "是否已设置可用密码")
+    private Boolean passwordSet;
 }

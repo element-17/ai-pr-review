@@ -2,6 +2,7 @@ package com.asuka.backend.service;
 
 import com.asuka.backend.pojo.dto.LoginDTO;
 import com.asuka.backend.pojo.dto.RegisterDTO;
+import com.asuka.backend.pojo.dto.SetPasswordDTO;
 import com.asuka.backend.pojo.vo.LoginVO;
 import com.asuka.backend.pojo.vo.UserInfoVO;
 
@@ -34,4 +35,14 @@ public interface AuthService {
      * 注册普通用户。
      */
     void register(RegisterDTO dto);
+
+    /**
+     * 为已校验的本地用户签发双 token；供 GitHub 登录 ticket 兑换复用。
+     */
+    LoginVO issueTokensForUser(Long userId);
+
+    /**
+     * 设置或修改密码。GitHub 创建且未设置密码的账号可以不带旧密码。
+     */
+    void setPassword(Long userId, SetPasswordDTO dto);
 }

@@ -11,6 +11,7 @@
         SELECT id,
                username,
                password,
+               password_set,
                nickname,
                email,
                phone,
@@ -27,6 +28,27 @@
         LIMIT 1
     </select>
 
+    <select id="selectByIdForLogin" resultType="com.asuka.backend.pojo.entity.User">
+        SELECT id,
+               username,
+               password,
+               password_set,
+               nickname,
+               email,
+               phone,
+               avatar,
+               status,
+               role,
+               last_login_time,
+               create_time,
+               update_time,
+               deleted
+        FROM `user`
+        WHERE id = #{id}
+          AND deleted = 0
+        LIMIT 1
+    </select>
+
     <!--
         复杂条件分页：
         1. 关键字同时匹配用户名、昵称、邮箱；
@@ -37,6 +59,7 @@
     <select id="selectUserPage" resultType="com.asuka.backend.pojo.entity.User">
         SELECT id,
                username,
+               password_set,
                nickname,
                email,
                phone,

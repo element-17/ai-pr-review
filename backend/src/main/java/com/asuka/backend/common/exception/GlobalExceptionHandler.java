@@ -35,9 +35,9 @@ public class GlobalExceptionHandler {
      * 业务异常：由业务代码主动抛出，code 和 message 都是可展示的。
      */
     @ExceptionHandler(BusinessException.class)
-    public Result<Void> handleBusinessException(BusinessException ex) {
+    public Result<Object> handleBusinessException(BusinessException ex) {
         log.warn("业务异常：{}", ex.getMessage());
-        return Result.error(ex.getCode(), ex.getMessage());
+        return Result.error(ex.getCode(), ex.getMessage(), ex.getData());
     }
 
     /**

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 用户服务实现。
@@ -98,6 +99,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BeanUtils.copyProperties(dto, user);
         // 密码必须加密存储，禁止明文落库
         user.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt()));
+        user.setPasswordSet(1);
         user.setRole(StringUtils.hasText(dto.getRole()) ? dto.getRole() : AuthConstant.ROLE_USER);
         user.setStatus(StatusConstant.ENABLED);
         if (!StringUtils.hasText(user.getNickname())) {
@@ -107,6 +109,54 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // save 由 MP 完成插入，并触发 createTime/createUser 自动填充
         save(user);
         return user.getId();
+    }
+
+    @Override
+    public Long createGitHubUser(String githubLogin, String nickname, String avatar, String email) {
+        String normalizedEmail = StringUtils.hasText(email) && email.length() <= 100 ? email.trim() : null;
+        if (normalizedEmail != null) {
+            long emailCount = lambdaQuery().eq(User::getEmail, normalizedEmail).count();
+            if (emailCount > 0) {
+                throw new BusinessException(409, "该 GitHub 邮箱已被本地账号使用，请先登录该账号后绑定 GitHub");
+            }
+        }
+
+        User user = new User();
+        user.setUsername(generateGitHubUsername(githubLogin));
+        // GitHub 创建的用户没有可用密码，随机值只用于满足 NOT NULL，不允许密码登录
+        user.setPassword(BCrypt.hashpw(UUID.randomUUID() + UUID.randomUUID().toString(), BCrypt.gensalt()));
+        user.setPasswordSet(0);
+        user.setNickname(StringUtils.hasText(nickname) ? nickname : githubLogin);
+        user.setAvatar(StringUtils.hasText(avatar) && avatar.length() <= 255 ? avatar : null);
+        user.setEmail(normalizedEmail);
+        user.setRole(AuthConstant.ROLE_USER);
+        user.setStatus(StatusConstant.ENABLED);
+        save(user);
+        return user.getId();
+    }
+
+    /**
+     * 生成 gh_ 前缀的本地登录名，冲突时追加数字后缀。
+     */
+    private String generateGitHubUsername(String githubLogin) {
+        String sanitized = githubLogin == null ? "" : githubLogin.replaceAll("[^A-Za-z0-9_]", "_");
+        if (!StringUtils.hasText(sanitized)) {
+            sanitized = "user";
+        }
+        String base = "gh_" + sanitized;
+        if (base.length() > 44) {
+            base = base.substring(0, 44);
+        }
+        String candidate = base;
+        int suffix = 2;
+        while (lambdaQuery().eq(User::getUsername, candidate).count() > 0) {
+            String tail = "_" + suffix;
+            candidate = (base.length() + tail.length() > 50
+                    ? base.substring(0, 50 - tail.length())
+                    : base) + tail;
+            suffix++;
+        }
+        return candidate;
     }
 
     @Override

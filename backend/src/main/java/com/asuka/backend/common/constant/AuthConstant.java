@@ -16,6 +16,12 @@ public final class AuthConstant {
     /** 登录失败次数 -> username */
     public static final String LOGIN_FAIL_KEY_PREFIX = "auth:login:fail:";
 
+    /** GitHub OAuth state -> 模式/用户 */
+    public static final String GITHUB_OAUTH_STATE_KEY_PREFIX = "auth:github:state:";
+
+    /** GitHub 登录一次性 ticket -> userId */
+    public static final String GITHUB_OAUTH_TICKET_KEY_PREFIX = "auth:github:ticket:";
+
     /** refresh-token 有效期：7 天 */
     public static final long REFRESH_TOKEN_TTL_DAYS = 7;
 

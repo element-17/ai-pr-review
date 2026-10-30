@@ -33,6 +33,11 @@ public interface UserService extends IService<User> {
 
     Long createUser(UserCreateDTO dto);
 
+    /**
+     * 创建 GitHub 登录用户：生成不冲突的用户名和随机不可用密码。
+     */
+    Long createGitHubUser(String githubLogin, String nickname, String avatar, String email);
+
     void updateUser(Long id, UserUpdateDTO dto);
 
     void deleteUser(Long id);

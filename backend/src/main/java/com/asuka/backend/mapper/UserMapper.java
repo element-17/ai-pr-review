@@ -27,6 +27,11 @@ public interface UserMapper extends BaseMapper<User> {
     User selectByUsernameForLogin(@Param("username") String username);
 
     /**
+     * 按 ID 查询登录所需字段，显式带出 password。
+     */
+    User selectByIdForLogin(@Param("id") Long id);
+
+    /**
      * 复杂条件分页查询：关键字同时匹配用户名、昵称、邮箱。
      * 使用 XML + MP 分页插件，SQL 可控且可读。
      */

@@ -20,6 +20,9 @@ public class UserVO {
     @Schema(description = "登录名")
     private String username;
 
+    @Schema(description = "是否已设置可用密码")
+    private Boolean passwordSet;
+
     @Schema(description = "昵称")
     private String nickname;
 

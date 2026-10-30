@@ -9,6 +9,7 @@ import com.asuka.backend.common.constant.StatusConstant;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.pojo.dto.LoginDTO;
 import com.asuka.backend.pojo.dto.RegisterDTO;
+import com.asuka.backend.pojo.dto.SetPasswordDTO;
 import com.asuka.backend.pojo.dto.UserCreateDTO;
 import com.asuka.backend.pojo.entity.User;
 import com.asuka.backend.mapper.UserMapper;
@@ -167,6 +168,61 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * GitHub 登录 ticket 兑换：用户已由 OAuth 回调校验，这里只负责签发体系内的双 token。
+     */
+    @Override
+    public LoginVO issueTokensForUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(401, "用户不存在，请重新登录");
+        }
+        if (!StatusConstant.ENABLED.equals(user.getStatus())) {
+            throw new BusinessException(403, "账号已被禁用，请联系管理员");
+        }
+        doLogin(user);
+        String accessToken = StpUtil.getTokenValue();
+        String refreshToken = createRefreshToken(userId);
+        updateLastLoginTime(userId);
+        return buildLoginVO(user, accessToken, refreshToken);
+    }
+
+    /**
+     * 设置或修改密码。
+     *
+     * <p>GitHub 创建的用户 password_set=0，首次设置不要求旧密码；
+     * 已设置密码的账号必须校验旧密码，避免登录态被盗后直接改密码。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void setPassword(Long userId, SetPasswordDTO dto) {
+        User user = userMapper.selectByIdForLogin(userId);
+        if (user == null) {
+            throw new BusinessException(401, "用户不存在，请重新登录");
+        }
+        if (dto.getConfirmPassword() != null
+                && !dto.getConfirmPassword().equals(dto.getNewPassword())) {
+            throw new BusinessException(400, "两次输入的新密码不一致");
+        }
+        boolean passwordSet = user.getPasswordSet() == null || user.getPasswordSet() != 0;
+        if (passwordSet) {
+            if (!StringUtils.hasText(dto.getCurrentPassword())
+                    || !BCrypt.checkpw(dto.getCurrentPassword(), user.getPassword())) {
+                throw new BusinessException(400, "当前密码不正确");
+            }
+        }
+        if (!StringUtils.hasText(dto.getNewPassword())
+                || dto.getNewPassword().trim().isEmpty()) {
+            throw new BusinessException(400, "新密码不能为空");
+        }
+
+        User update = new User();
+        update.setId(userId);
+        update.setPassword(BCrypt.hashpw(dto.getNewPassword(), BCrypt.gensalt()));
+        update.setPasswordSet(1);
+        userMapper.updateById(update);
+    }
+
+    /**
      * Sa-Token 登录：timeout 使用全局配置，默认 1800 秒。
      * 登录后把角色放入 Session，StpInterfaceImpl 读取该角色做权限判断。
      */
@@ -273,6 +329,7 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
                 .role(user.getRole())
+                .passwordSet(user.getPasswordSet() == null || user.getPasswordSet() != 0)
                 .build();
     }
 }

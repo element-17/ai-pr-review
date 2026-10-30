@@ -33,6 +33,9 @@ public class User extends BaseEntity {
     @Schema(description = "BCrypt 加密后的密码", hidden = true)
     private String password;
 
+    @Schema(description = "是否已设置可用密码：1 是，0 否（GitHub 创建）")
+    private Integer passwordSet;
+
     @Schema(description = "昵称")
     private String nickname;
 

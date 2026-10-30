@@ -31,6 +31,11 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/auth/register",
+                        // GitHub 登录授权入口、回调和 ticket 兑换是公开端点；
+                        // /api/auth/github/bind/** 与 /binding 仍需平台登录态。
+                        "/api/auth/github/login/authorize",
+                        "/api/auth/github/callback",
+                        "/api/auth/github/exchange",
                         // 任务相关路径允许游客创建/凭令牌访问；具体权限在 TaskAccessService 中校验。
                         // GET /api/tasks 列表在 Service 内强制登录。
                         "/api/tasks",
