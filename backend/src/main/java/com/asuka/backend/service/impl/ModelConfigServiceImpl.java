@@ -3,6 +3,7 @@ package com.asuka.backend.service.impl;
 import com.asuka.backend.common.constant.ModelProviderConstant;
 import com.asuka.backend.common.crypto.SecretCipher;
 import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.common.cache.CacheNames;
 import com.asuka.backend.common.properties.AiProperties;
 import com.asuka.backend.common.util.BaseUrlValidator;
 import com.asuka.backend.core.agent.ai.ModelProbeService;
@@ -20,6 +21,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -62,6 +64,7 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, allEntries = true)
     public Long create(ModelConfigCreateDTO dto) {
         validateProviderAndUrl(dto.getProvider(), dto.getBaseUrl());
         boolean enabled = dto.getEnabled() == null || dto.getEnabled();
@@ -97,6 +100,7 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, allEntries = true)
     public void update(Long id, ModelConfigUpdateDTO dto) {
         AiModelConfig config = requireConfig(id);
         if (StringUtils.hasText(dto.getProvider())) {
@@ -131,6 +135,7 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, allEntries = true)
     public void changeStatus(Long id, boolean enabled) {
         AiModelConfig config = requireConfig(id);
         config.setEnabled(enabled ? 1 : 0);
@@ -152,6 +157,7 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, allEntries = true)
     public void setDefault(Long id) {
         AiModelConfig config = requireConfig(id);
         if (config.getEnabled() == null || config.getEnabled() != 1) {
@@ -204,6 +210,15 @@ public class ModelConfigServiceImpl implements ModelConfigService {
             throw new BusinessException(400, "模型不存在或已停用");
         }
         return config;
+    }
+
+    @Override
+    public boolean isEnabled(Long id) {
+        if (id == null) {
+            return false;
+        }
+        AiModelConfig config = modelConfigMapper.selectById(id);
+        return config != null && config.getEnabled() != null && config.getEnabled() == 1;
     }
 
     @Override

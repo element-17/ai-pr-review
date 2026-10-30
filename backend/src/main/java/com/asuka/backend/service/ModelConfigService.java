@@ -35,5 +35,7 @@ public interface ModelConfigService {
 
     AiModelConfig requireEnabled(Long id);
 
+    boolean isEnabled(Long id);
+
     AiModelConfig findDefaultEnabled();
 }

@@ -46,4 +46,8 @@ public class UserSettingUpdateDTO {
     @Max(value = 200000, message = "最大 Diff 行数不能超过 200000")
     @Schema(description = "单次分析最大 Diff 行数")
     private Integer maxDiffLines;
+
+    @Min(value = 0, message = "偏好模型 ID 非法")
+    @Schema(description = "偏好模型 ID；0 表示清除偏好，使用管理员默认模型")
+    private Long preferredModelId;
 }

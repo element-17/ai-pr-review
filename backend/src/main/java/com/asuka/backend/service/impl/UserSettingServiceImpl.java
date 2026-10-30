@@ -3,9 +3,12 @@ package com.asuka.backend.service.impl;
 import com.asuka.backend.common.cache.CacheNames;
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.pojo.dto.UserSettingUpdateDTO;
 import com.asuka.backend.pojo.entity.UserSetting;
 import com.asuka.backend.mapper.UserSettingMapper;
+import com.asuka.backend.service.ModelConfigService;
+import com.asuka.backend.service.ModelRuntimeService;
 import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.asuka.backend.pojo.vo.UserSettingVO;
@@ -39,6 +42,8 @@ public class UserSettingServiceImpl implements UserSettingService {
     private static final int DEFAULT_MAX_DIFF_LINES = 20000;
 
     private final UserSettingMapper userSettingMapper;
+    private final ModelConfigService modelConfigService;
+    private final ModelRuntimeService modelRuntimeService;
 
     @Override
     @Cacheable(cacheNames = CacheNames.USER_SETTING, key = "#userId", sync = true)
@@ -47,7 +52,9 @@ public class UserSettingServiceImpl implements UserSettingService {
         if (setting == null) {
             setting = defaultSetting(userId);
         }
-        return toVO(setting);
+        UserSettingVO vo = toVO(setting);
+        enrichModel(vo, userId);
+        return vo;
     }
 
     @Override
@@ -55,7 +62,8 @@ public class UserSettingServiceImpl implements UserSettingService {
     public UserSettingVO updateSettings(Long userId, UserSettingUpdateDTO dto) {
         if (dto == null || (dto.getTheme() == null && dto.getLanguage() == null
                 && dto.getCheckCategories() == null && dto.getIgnoreDirs() == null
-                && dto.getMaxFileCount() == null && dto.getMaxDiffLines() == null)) {
+                && dto.getMaxFileCount() == null && dto.getMaxDiffLines() == null
+                && dto.getPreferredModelId() == null)) {
             throw new BusinessException(400, "至少需要提交一个设置项");
         }
 
@@ -85,6 +93,15 @@ public class UserSettingServiceImpl implements UserSettingService {
         }
         if (dto.getMaxDiffLines() != null) {
             setting.setMaxDiffLines(dto.getMaxDiffLines());
+        }
+        if (dto.getPreferredModelId() != null) {
+            if (dto.getPreferredModelId() == 0L) {
+                setting.setPreferredModelId(null);
+            } else {
+                // 只接受管理员已启用的模型，不能传任意 ID
+                modelConfigService.requireEnabled(dto.getPreferredModelId());
+                setting.setPreferredModelId(dto.getPreferredModelId());
+            }
         }
 
         if (insert) {
@@ -135,6 +152,7 @@ public class UserSettingServiceImpl implements UserSettingService {
         setting.setIgnoreDirs(DEFAULT_IGNORE_DIRS);
         setting.setMaxFileCount(DEFAULT_MAX_FILE_COUNT);
         setting.setMaxDiffLines(DEFAULT_MAX_DIFF_LINES);
+        setting.setPreferredModelId(null);
         return setting;
     }
 
@@ -193,8 +211,19 @@ public class UserSettingServiceImpl implements UserSettingService {
         vo.setIgnoreDirs(parseStringList(setting.getIgnoreDirs()));
         vo.setMaxFileCount(setting.getMaxFileCount());
         vo.setMaxDiffLines(setting.getMaxDiffLines());
+        vo.setPreferredModelId(setting.getPreferredModelId());
         vo.setUpdateTime(setting.getUpdateTime());
         return vo;
+    }
+
+    /**
+     * 设置接口返回实际生效模型；偏好被停用时保留 preferredModelId，但 effectiveModel 已回退。
+     */
+    private void enrichModel(UserSettingVO vo, Long userId) {
+        Long preferredId = vo.getPreferredModelId();
+        vo.setPreferredModelEnabled(preferredId != null && modelConfigService.isEnabled(preferredId));
+        ResolvedModel effective = modelRuntimeService.resolveForUser(userId);
+        vo.setEffectiveModel(modelRuntimeService.toSnapshot(effective));
     }
 
     private List<Integer> parseIntList(String raw) {

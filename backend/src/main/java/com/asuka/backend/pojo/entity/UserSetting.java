@@ -41,6 +41,9 @@ public class UserSetting implements Serializable {
     /** 单次分析最大 Diff 行数 */
     private Integer maxDiffLines;
 
+    /** 用户偏好模型 ID；为空表示使用管理员默认 */
+    private Long preferredModelId;
+
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 

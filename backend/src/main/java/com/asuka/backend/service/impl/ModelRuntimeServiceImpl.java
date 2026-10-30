@@ -7,8 +7,10 @@ import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.properties.AiProperties;
 import com.asuka.backend.core.agent.ai.ModelRuntimeConfig;
 import com.asuka.backend.core.agent.ai.ResolvedModel;
+import com.asuka.backend.mapper.UserSettingMapper;
 import com.asuka.backend.pojo.entity.AiModelConfig;
 import com.asuka.backend.pojo.entity.AnalysisTask;
+import com.asuka.backend.pojo.entity.UserSetting;
 import com.asuka.backend.pojo.vo.ModelSnapshotVO;
 import com.asuka.backend.service.ModelConfigService;
 import com.asuka.backend.service.ModelRuntimeService;
@@ -31,11 +33,23 @@ import java.math.BigDecimal;
 public class ModelRuntimeServiceImpl implements ModelRuntimeService {
 
     private final ModelConfigService modelConfigService;
+    private final UserSettingMapper userSettingMapper;
     private final SecretCipher secretCipher;
     private final AiProperties aiProperties;
 
     @Override
     public ResolvedModel resolveForUser(Long userId) {
+        if (userId != null) {
+            UserSetting setting = userSettingMapper.selectById(userId);
+            if (setting != null && setting.getPreferredModelId() != null) {
+                try {
+                    AiModelConfig config = modelConfigService.requireEnabled(setting.getPreferredModelId());
+                    return fromConfig(config, ModelSourceConstant.USER_PREFERENCE);
+                } catch (BusinessException ex) {
+                    log.info("用户 {} 的偏好模型已停用，回退管理员默认模型", userId);
+                }
+            }
+        }
         return resolveDefaultOrEnv();
     }
 

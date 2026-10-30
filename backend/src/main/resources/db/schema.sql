@@ -121,10 +121,13 @@ CREATE TABLE IF NOT EXISTS `user_setting`
     `ignore_dirs`      VARCHAR(1000) NOT NULL DEFAULT 'node_modules,dist,target,.git' COMMENT '忽略目录，逗号分隔',
     `max_file_count`   INT           NOT NULL DEFAULT 200 COMMENT '单次分析最大文件数',
     `max_diff_lines`   INT           NOT NULL DEFAULT 20000 COMMENT '单次分析最大 Diff 行数',
+    `preferred_model_id` BIGINT      NULL COMMENT '用户偏好模型 ID，关联 ai_model_config.id；空表示使用管理员默认',
     `create_time`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`user_id`),
-    CONSTRAINT `fk_setting_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+    KEY `idx_preferred_model` (`preferred_model_id`),
+    CONSTRAINT `fk_setting_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_setting_model` FOREIGN KEY (`preferred_model_id`) REFERENCES `ai_model_config` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = '用户设置';

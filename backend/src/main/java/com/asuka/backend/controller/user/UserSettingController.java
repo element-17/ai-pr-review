@@ -34,9 +34,12 @@ public class UserSettingController {
         return Result.success(userSettingService.getSettings(UserContext.requireUserId()));
     }
 
-    @Operation(summary = "修改个人设置", description = "支持部分更新，至少提交一个字段")
+    @Operation(summary = "修改个人设置", description = "支持部分更新，至少提交一个字段；preferredModelId=0 表示清除偏好")
     @PatchMapping
     public Result<UserSettingVO> updateSettings(@Valid @RequestBody UserSettingUpdateDTO dto) {
-        return Result.success(userSettingService.updateSettings(UserContext.requireUserId(), dto));
+        Long userId = UserContext.requireUserId();
+        userSettingService.updateSettings(userId, dto);
+        // update 已驱逐设置缓存，重新读取以返回实际生效模型
+        return Result.success(userSettingService.getSettings(userId));
     }
 }

@@ -32,6 +32,15 @@ public class UserSettingVO {
     @Schema(description = "单次分析最大 Diff 行数", example = "20000")
     private Integer maxDiffLines;
 
+    @Schema(description = "用户偏好模型 ID；为空表示使用管理员默认")
+    private Long preferredModelId;
+
+    @Schema(description = "偏好模型当前是否仍启用")
+    private Boolean preferredModelEnabled;
+
+    @Schema(description = "当前实际生效的模型")
+    private ModelSnapshotVO effectiveModel;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Schema(description = "更新时间；从未保存过设置为空")
     private LocalDateTime updateTime;
