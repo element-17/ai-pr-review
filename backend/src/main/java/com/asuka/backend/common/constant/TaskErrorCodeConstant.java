@@ -31,6 +31,9 @@ public final class TaskErrorCodeConstant {
     /** 内部错误 */
     public static final int INTERNAL_ERROR = 8;
 
+    /** 任务创建后 PR 又产生新提交，当前任务不再对应最新 head */
+    public static final int PR_CHANGED = 9;
+
     private TaskErrorCodeConstant() {
     }
 }

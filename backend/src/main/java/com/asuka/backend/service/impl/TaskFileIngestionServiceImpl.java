@@ -2,7 +2,9 @@ package com.asuka.backend.service.impl;
 
 import com.asuka.backend.service.TaskFileIngestionService;
 
+import com.asuka.backend.common.constant.TaskErrorCodeConstant;
 import com.asuka.backend.common.constant.TaskFileConstant;
+import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.util.BinaryDetector;
 import com.asuka.backend.common.util.LanguageDetector;
 import com.asuka.backend.pojo.entity.AnalysisTask;
@@ -10,6 +12,7 @@ import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubFileResponse;
+import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -48,6 +51,16 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
             throw new IllegalArgumentException("仓库全名格式错误");
         }
 
+        // PR files API 返回的是当前 head 的文件；先确认任务创建后 PR 没有新提交，
+        // 避免 task.head_sha 与 patch/行号来自不同版本。
+        GitHubPrResponse current = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber());
+        String currentHead = current.getHead() == null ? null : current.getHead().getSha();
+        if (!StringUtils.hasText(currentHead)
+                || !currentHead.equalsIgnoreCase(task.getHeadSha())) {
+            throw new AnalysisPipelineException(TaskErrorCodeConstant.PR_CHANGED,
+                    "PR 已更新，请重新创建分析任务");
+        }
+
         List<GitHubFileResponse> files = gitHubClient.listPullRequestFiles(
                 repo[0], repo[1], pr.getPrNumber());
 
@@ -71,6 +84,16 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
             if (path.length() > MAX_PATH_LENGTH) {
                 TaskFile row = baseRow(task, file, null, 0);
                 markSkipped(row, "文件路径过长");
+                taskFileMapper.insert(row);
+                saved.add(row);
+                skipped++;
+                continue;
+            }
+
+            String ignoredDir = matchedIgnoreDir(path, config);
+            if (ignoredDir != null) {
+                TaskFile row = baseRow(task, file, null, 0);
+                markSkipped(row, "命中忽略目录：" + ignoredDir);
                 taskFileMapper.insert(row);
                 saved.add(row);
                 skipped++;
@@ -142,6 +165,39 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
         row.setStatus(TaskFileConstant.STATUS_SKIPPED);
         row.setSkipReason(reason);
         row.setPatch(null);
+    }
+
+    private String matchedIgnoreDir(String path, AnalysisConfigVO config) {
+        if (config == null || config.getIgnoreDirs() == null || config.getIgnoreDirs().isEmpty()) {
+            return null;
+        }
+        for (String raw : config.getIgnoreDirs()) {
+            if (!StringUtils.hasText(raw)) {
+                continue;
+            }
+            String dir = raw.trim().replace('\\', '/');
+            while (dir.startsWith("/")) {
+                dir = dir.substring(1);
+            }
+            while (dir.endsWith("/")) {
+                dir = dir.substring(0, dir.length() - 1);
+            }
+            if (dir.isEmpty()) {
+                continue;
+            }
+            if (dir.contains("/")) {
+                if (path.equals(dir) || path.startsWith(dir + "/") || path.contains("/" + dir + "/")) {
+                    return dir;
+                }
+                continue;
+            }
+            for (String segment : path.split("/")) {
+                if (segment.equalsIgnoreCase(dir)) {
+                    return dir;
+                }
+            }
+        }
+        return null;
     }
 
     private int resolveChangeType(String status) {
