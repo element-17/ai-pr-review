@@ -5,7 +5,6 @@ import com.asuka.backend.common.properties.AiProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,23 +13,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 无 DeepSeek Key 时使用的确定性 fake client。
+ * 无真实模型 Key 时使用的确定性 fake client。
  *
- * <p>只在 pr.ai.provider=fake 时启用；用于本地联调和自动化测试 agent 工具循环。
+ * <p>只在环境兜底 provider=fake 时由 ModelClientRouter 选择；
+ * 用于本地联调和自动化测试 agent 工具循环。
  * 第一次返回 read_file 工具调用，收到工具结果后调用 submit_*。
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "pr.ai.provider", havingValue = "fake")
-public class FakeModelClient implements ModelClient {
+public class FakeModelClient implements ProviderModelClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final AiProperties aiProperties;
 
     @Override
-    public ModelResponse chat(ModelRequest request) {
+    public ModelResponse chat(ModelRequest request, ModelRuntimeConfig config) {
         String stage = request.getStage();
         Map<String, Object> context = request.getContext() == null ? Map.of() : request.getContext();
         List<Map<String, Object>> files = castFiles(context.get("files"));

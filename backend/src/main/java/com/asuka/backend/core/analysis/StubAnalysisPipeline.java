@@ -3,6 +3,7 @@ package com.asuka.backend.core.analysis;
 import com.asuka.backend.common.constant.TaskFileConstant;
 import com.asuka.backend.common.exception.TaskCanceledException;
 import com.asuka.backend.common.properties.TaskProperties;
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.pojo.entity.AnalysisReport;
 import com.asuka.backend.pojo.entity.AnalysisTask;
@@ -37,7 +38,8 @@ public class StubAnalysisPipeline implements AnalysisPipeline {
     private final TaskProperties taskProperties;
 
     @Override
-    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth) {
+    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config,
+                              GitHubAuth auth, ResolvedModel model) {
         if (taskProperties.getStubDelayMs() > 0) {
             try {
                 Thread.sleep(taskProperties.getStubDelayMs());

@@ -14,9 +14,11 @@ import com.asuka.backend.common.exception.GitHubApiException;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubErrorMapper;
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.exception.TaskCanceledException;
 import com.asuka.backend.service.GitHubTokenProvider;
+import com.asuka.backend.service.ModelRuntimeService;
 import com.asuka.backend.service.TaskFileIngestionService;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
@@ -51,6 +53,7 @@ public class TaskWorker {
     private final AnalysisPipeline analysisPipeline;
     private final AnalysisConfigParser analysisConfigParser;
     private final GitHubTokenProvider gitHubTokenProvider;
+    private final ModelRuntimeService modelRuntimeService;
 
     public void process(Long taskId) {
         MDC.put("traceId", "task-" + taskId);
@@ -100,6 +103,15 @@ public class TaskWorker {
             return;
         }
 
+        ResolvedModel model;
+        try {
+            model = modelRuntimeService.resolveForExecution(task);
+        } catch (Exception ex) {
+            log.warn("任务 {} 模型配置解析失败：{}", taskId, ex.getClass().getSimpleName());
+            fail(taskId, TaskErrorCodeConstant.INTERNAL_ERROR, "模型配置解析失败");
+            return;
+        }
+
         try {
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_PR, 10);
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_FILES, 20);
@@ -111,7 +123,7 @@ public class TaskWorker {
             updateProgress(taskId, TaskStatusConstant.STAGE_CONTEXT, 35);
             updateProgress(taskId, TaskStatusConstant.STAGE_AI, 50);
             long aiStarted = System.currentTimeMillis();
-            AnalysisResult result = analysisPipeline.run(task, pr, config, auth);
+            AnalysisResult result = analysisPipeline.run(task, pr, config, auth, model);
             log.info("任务 {} AI 分析完成：durationMs={}, partial={}",
                     taskId, System.currentTimeMillis() - aiStarted, result.partial());
 

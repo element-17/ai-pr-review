@@ -7,11 +7,13 @@ import com.asuka.backend.service.RateLimitService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.service.GitHubTokenProvider;
+import com.asuka.backend.service.ModelRuntimeService;
 
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.exception.BusinessException;
-import com.asuka.backend.common.properties.AiProperties;
 import com.asuka.backend.common.properties.PrAppProperties;
+import com.asuka.backend.core.agent.ai.ResolvedModel;
+import com.asuka.backend.core.analysis.AnalysisConfigParser;
 import com.asuka.backend.pojo.dto.TaskCreateDTO;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -65,7 +68,8 @@ public class TaskCreateServiceImpl implements TaskCreateService {
     private final RateLimitService rateLimitService;
     private final IdempotencyService idempotencyService;
     private final PrAppProperties prAppProperties;
-    private final AiProperties aiProperties;
+    private final ModelRuntimeService modelRuntimeService;
+    private final AnalysisConfigParser analysisConfigParser;
 
     @Transactional(rollbackFor = Exception.class)
     public TaskCreateVO create(TaskCreateDTO dto, String idempotencyKey) {
@@ -111,6 +115,11 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         AnalysisConfigVO config = userId != null
                 ? userSettingService.buildAnalysisConfig(userId)
                 : userSettingService.buildGuestAnalysisConfig();
+        ResolvedModel model = userId != null
+                ? modelRuntimeService.resolveForUser(userId)
+                : modelRuntimeService.resolveForGuest();
+        AnalysisConfigVO configSnapshot = copyConfig(config);
+        configSnapshot.setModel(modelRuntimeService.toSnapshot(model));
 
         AnalysisTask task = new AnalysisTask();
         task.setPrId(pr.getId());
@@ -120,8 +129,9 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         task.setStatus(1);
         task.setStage(1);
         task.setProgress(0);
-        task.setModelName(aiProperties.getActiveModelName());
-        task.setAnalysisConfig(toJson(config));
+        task.setModelName(model.getModelId());
+        task.setModelConfigId(model.getModelConfigId());
+        task.setAnalysisConfig(toJson(configSnapshot));
         task.setIsDeleted(0);
         if (userId == null) {
             task.setGuestToken(newGuestToken());
@@ -154,6 +164,13 @@ public class TaskCreateServiceImpl implements TaskCreateService {
             rateLimitService.checkGuestTask();
         }
 
+        ResolvedModel model = modelRuntimeService.resolveForRetry(original);
+        AnalysisConfigVO configSnapshot = analysisConfigParser.parse(original.getAnalysisConfig(), original.getId());
+        if (configSnapshot == null) {
+            configSnapshot = new AnalysisConfigVO();
+        }
+        configSnapshot.setModel(modelRuntimeService.toSnapshot(model));
+
         AnalysisTask task = new AnalysisTask();
         task.setPrId(original.getPrId());
         task.setUserId(original.getUserId());
@@ -162,8 +179,9 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         task.setStatus(1);
         task.setStage(1);
         task.setProgress(0);
-        task.setModelName(aiProperties.getActiveModelName());
-        task.setAnalysisConfig(original.getAnalysisConfig());
+        task.setModelName(model.getModelId());
+        task.setModelConfigId(model.getModelConfigId());
+        task.setAnalysisConfig(toJson(configSnapshot));
         task.setRetryOfTaskId(original.getId());
         task.setIsDeleted(0);
         if (original.getUserId() == null) {
@@ -231,6 +249,18 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         } catch (Exception ex) {
             throw new BusinessException(500, "任务配置序列化失败");
         }
+    }
+
+    /**
+     * 配置快照对象可能来自缓存，复制一份再写入模型快照，避免污染缓存。
+     */
+    private AnalysisConfigVO copyConfig(AnalysisConfigVO source) {
+        AnalysisConfigVO copy = new AnalysisConfigVO();
+        if (source != null) {
+            BeanUtils.copyProperties(source, copy);
+        }
+        copy.setModel(null);
+        return copy;
     }
 
     private TaskCreateVO readTaskCreateVO(String json) {

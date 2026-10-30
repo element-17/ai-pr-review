@@ -47,6 +47,9 @@ public class AnalysisTask implements Serializable {
 
     private String modelName;
 
+    /** 本次使用的模型配置 ID；环境兜底为空 */
+    private Long modelConfigId;
+
     /** 本次分析的非敏感配置快照，JSON 字符串 */
     private String analysisConfig;
 

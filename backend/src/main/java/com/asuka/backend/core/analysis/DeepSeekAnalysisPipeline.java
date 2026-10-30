@@ -27,6 +27,7 @@ import com.asuka.backend.core.agent.AgentContext;
 import com.asuka.backend.core.agent.AgentExecutor;
 import com.asuka.backend.core.agent.AgentSubmission;
 import com.asuka.backend.core.agent.AgentToolDefinitions;
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.common.exception.TaskCanceledException;
 import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -75,7 +76,8 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
     private final IssueValidationService issueValidationService;
 
     @Override
-    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth) {
+    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config,
+                              GitHubAuth auth, ResolvedModel model) {
         String[] repo = pr.getRepoFullName().split("/", 2);
         if (repo.length != 2) {
             throw new AnalysisPipelineException(TaskErrorCodeConstant.INTERNAL_ERROR, "仓库全名格式错误");
@@ -108,7 +110,7 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
                 .map(this::fileMeta)
                 .toList();
         AgentContext summaryContext = new AgentContext(
-                "summary", taskContext, contextBuilder, summaryFiles, english);
+                "summary", taskContext, contextBuilder, summaryFiles, english, model);
 
         checkCanceled(task.getId());
         SummaryDraft summary;
@@ -180,7 +182,7 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
                         Math.min(start + batchSize, analyzable.size())));
                 futures.add(completion.submit(() -> analyzeBatch(
                         task, pr, report, taskContext, contextBuilder, english,
-                        batch, config, issueSaveLock)));
+                        batch, config, issueSaveLock, model)));
             }
 
             for (int completed = 1; completed <= batchCount; completed++) {
@@ -235,12 +237,13 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
                                       boolean english,
                                       List<TaskFile> batch,
                                       AnalysisConfigVO config,
-                                      Object issueSaveLock) {
+                                      Object issueSaveLock,
+                                      ResolvedModel model) {
         try {
             checkCanceled(task.getId());
             List<Map<String, Object>> batchMeta = batch.stream().map(this::fileMeta).toList();
             AgentContext issueContext = new AgentContext(
-                    "issues", taskContext, contextBuilder, batchMeta, english);
+                    "issues", taskContext, contextBuilder, batchMeta, english, model);
 
             AgentSubmission result = agentExecutor.run(
                     issueContext,

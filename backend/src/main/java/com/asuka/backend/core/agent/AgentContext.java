@@ -1,5 +1,6 @@
 package com.asuka.backend.core.agent;
 
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.core.analysis.AnalysisContext;
 import com.asuka.backend.core.analysis.ContextBuilder;
 import lombok.AllArgsConstructor;
@@ -25,4 +26,7 @@ public class AgentContext {
     private List<Map<String, Object>> files;
 
     private boolean english;
+
+    /** 本次任务实际使用的模型 */
+    private ResolvedModel model;
 }

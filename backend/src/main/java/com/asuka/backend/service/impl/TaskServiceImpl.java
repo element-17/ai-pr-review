@@ -22,6 +22,7 @@ import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskService;
 import com.asuka.backend.service.TaskStatsService;
 import com.asuka.backend.pojo.vo.PrBriefVO;
+import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.asuka.backend.pojo.vo.PrVO;
 import com.asuka.backend.pojo.vo.TaskDetailVO;
 import com.asuka.backend.pojo.vo.TaskListItemVO;
@@ -119,7 +120,14 @@ public class TaskServiceImpl implements TaskService {
         vo.setHeadSha(task.getHeadSha());
         vo.setReportLanguage(task.getReportLanguage());
         vo.setModelName(task.getModelName());
-        vo.setAnalysisConfig(analysisConfigParser.parse(task.getAnalysisConfig(), task.getId()));
+        AnalysisConfigVO config = analysisConfigParser.parse(task.getAnalysisConfig(), task.getId());
+        vo.setAnalysisConfig(config);
+        if (config != null && config.getModel() != null) {
+            vo.setModelDisplayName(config.getModel().getDisplayName());
+            vo.setModelProvider(config.getModel().getProvider());
+        } else {
+            vo.setModelDisplayName(task.getModelName());
+        }
         vo.setErrorCode(task.getErrorCode());
         vo.setErrorMessage(task.getErrorMessage());
         vo.setIsGuest(task.getUserId() == null);

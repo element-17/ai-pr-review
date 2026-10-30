@@ -1,5 +1,6 @@
 package com.asuka.backend.core.analysis;
 
+import com.asuka.backend.core.agent.ai.ResolvedModel;
 import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
@@ -13,5 +14,6 @@ import com.asuka.backend.pojo.vo.AnalysisConfigVO;
  */
 public interface AnalysisPipeline {
 
-    AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth);
+    AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config,
+                       GitHubAuth auth, ResolvedModel model);
 }

@@ -22,6 +22,12 @@ public class ReportVO {
     @Schema(description = "使用的模型")
     private String modelName;
 
+    @Schema(description = "模型显示名称")
+    private String modelDisplayName;
+
+    @Schema(description = "模型请求格式")
+    private String modelProvider;
+
     @Schema(description = "本次分析的非敏感配置")
     private AnalysisConfigVO analysisConfig;
 

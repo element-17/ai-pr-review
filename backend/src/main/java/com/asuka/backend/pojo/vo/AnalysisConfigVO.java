@@ -23,4 +23,7 @@ public class AnalysisConfigVO {
 
     @Schema(description = "最大 Diff 行数")
     private Integer maxDiffLines;
+
+    @Schema(description = "本次实际使用的模型快照")
+    private ModelSnapshotVO model;
 }

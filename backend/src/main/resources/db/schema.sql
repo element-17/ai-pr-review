@@ -167,7 +167,8 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
     `status`          TINYINT     NOT NULL DEFAULT 1 COMMENT '任务状态：1 排队，2 分析中，3 已完成，4 部分完成，5 失败，6 已取消',
     `stage`           TINYINT     NOT NULL DEFAULT 1 COMMENT '当前阶段：1 排队，2 获取 PR，3 获取变更，4 补充上下文，5 AI 分析，6 校验入库，7 结束',
     `progress`        TINYINT     NOT NULL DEFAULT 0 COMMENT '进度，0-100',
-    `model_name`      VARCHAR(64) NULL COMMENT '本次使用的模型名称',
+    `model_name`      VARCHAR(200) NULL COMMENT '本次使用的模型 ID',
+    `model_config_id` BIGINT       NULL COMMENT '本次使用的模型配置 ID；环境兜底为空',
     `analysis_config` JSON        NULL COMMENT '本次分析使用的非敏感配置快照',
     `error_code`      TINYINT     NULL COMMENT '失败或部分完成的原因编码，正常为空',
     `error_message`   VARCHAR(500) NULL COMMENT '失败或部分完成的原因摘要，已脱敏',
@@ -185,10 +186,12 @@ CREATE TABLE IF NOT EXISTS `analysis_task`
     KEY `idx_user_pr_time` (`user_id`, `pr_id`, `create_time`),
     KEY `idx_pr_sha_user` (`pr_id`, `head_sha`, `user_id`, `status`),
     KEY `idx_status` (`status`),
+    KEY `idx_model_config` (`model_config_id`),
     KEY `idx_expire_time` (`expire_time`),
     KEY `idx_retry_of_task` (`retry_of_task_id`),
     CONSTRAINT `fk_task_pr` FOREIGN KEY (`pr_id`) REFERENCES `pull_request` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT
+    CONSTRAINT `fk_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_task_model` FOREIGN KEY (`model_config_id`) REFERENCES `ai_model_config` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COMMENT = 'PR 分析任务';

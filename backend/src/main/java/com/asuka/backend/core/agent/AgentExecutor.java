@@ -2,8 +2,8 @@ package com.asuka.backend.core.agent;
 
 import com.asuka.backend.common.exception.AgentException;
 import com.asuka.backend.common.properties.AiProperties;
-import com.asuka.backend.core.agent.ai.ModelClient;
 import com.asuka.backend.common.exception.ModelException;
+import com.asuka.backend.core.agent.ai.ModelClientRouter;
 import com.asuka.backend.core.agent.ai.ModelMessage;
 import com.asuka.backend.core.agent.ai.ModelRequest;
 import com.asuka.backend.core.agent.ai.ModelResponse;
@@ -34,7 +34,7 @@ public class AgentExecutor {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final ModelClient modelClient;
+    private final ModelClientRouter modelClientRouter;
     private final AgentToolRegistry toolRegistry;
     private final AiProperties aiProperties;
 
@@ -75,7 +75,6 @@ public class AgentExecutor {
             }
 
             ModelRequest request = new ModelRequest();
-            request.setModel(aiProperties.getDeepseek().getModel());
             request.setMessages(new ArrayList<>(messages));
             // 最后一次机会只暴露提交工具，并用 tool_choice 强制模型调用它。
             request.setTools(forced ? terminalOnly : tools);
@@ -85,8 +84,6 @@ public class AgentExecutor {
                         "function", Map.of("name", terminalTool)
                 ));
             }
-            request.setMaxTokens(aiProperties.getDeepseek().getMaxTokens());
-            request.setTemperature(aiProperties.getDeepseek().getTemperature());
             request.setStage(context.getStage());
             request.setContext(Map.of(
                     "stage", context.getStage(),
@@ -94,7 +91,7 @@ public class AgentExecutor {
                     "english", context.isEnglish()
             ));
 
-            ModelResponse response = modelClient.chat(request);
+            ModelResponse response = modelClientRouter.chat(request, context.getModel());
             turns++;
             if (response.getChoices() == null || response.getChoices().isEmpty()
                     || response.getChoices().get(0).getMessage() == null) {
