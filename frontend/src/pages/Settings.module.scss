@@ -1,0 +1,49 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 28px;
+  align-items: start;
+}
+
+.settings-content {
+  grid-column: 1;
+  grid-row: 1;
+
+  section[id] {
+    scroll-margin-top: 28px;
+  }
+}
+
+.settings-notice {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-top: 2px solid var(--ink);
+
+  h2 {
+    margin-top: 22px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .settings-content {
+    grid-row: 2;
+
+    section[id] {
+      scroll-margin-top: 145px;
+    }
+  }
+}

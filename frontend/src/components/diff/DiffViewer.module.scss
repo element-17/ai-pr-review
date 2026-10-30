@@ -1,0 +1,125 @@
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.diff-scroll {
+  overflow: auto;
+  max-height: 650px;
+  border-block: 1px solid var(--border);
+  scroll-margin-top: 20px;
+}
+
+.diff-table {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 21px;
+  table-layout: auto;
+
+  td {
+    border: 0;
+    padding: 0;
+    vertical-align: top;
+  }
+
+  .line-number {
+    user-select: none;
+    width: 38px;
+    min-width: 38px;
+    text-align: right;
+    padding-inline: 8px;
+    color: var(--muted);
+    font-size: 10px;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    border-right: 1px solid var(--border);
+  }
+
+  .line-sign {
+    width: 20px;
+    min-width: 20px;
+    text-align: center;
+    user-select: none;
+    color: var(--muted);
+  }
+
+  .code-cell {
+    padding: 0 12px;
+  }
+
+  code {
+    font-size: 11px;
+    white-space: pre;
+    tab-size: 4;
+  }
+}
+
+.diff-line.add,
+.code-cell.add {
+  background: var(--add-bg);
+}
+
+.diff-line.delete,
+.code-cell.delete {
+  background: var(--delete-bg);
+}
+
+.diff-line.hunk,
+.code-cell.hunk {
+  background: var(--surface-hover);
+  color: var(--muted);
+}
+
+.diff-line {
+  &.meta {
+    color: var(--muted);
+  }
+}
+
+.diff-table {
+  [data-focused='true'] {
+    box-shadow: inset 0 0 0 1px var(--warning);
+    background: var(--warning-bg);
+  }
+}
+
+.split {
+  .code-cell {
+    width: 50%;
+    border-right: 1px solid var(--border);
+  }
+}
+
+.line-issue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: normal;
+  min-width: 190px;
+  margin: 4px 0;
+  padding: 5px 8px;
+  font: 10px/1.6 Inter, 'Microsoft YaHei', sans-serif;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 4px;
+}
+
+.load-more {
+  width: calc(100% - 32px);
+  margin: 16px;
+}
+
+.severity-1 {
+  color: var(--positive);
+  background: var(--add-bg);
+}
+
+.severity-2 {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.severity-3,
+.severity-4 {
+  color: var(--danger);
+  background: var(--danger-bg);
+}

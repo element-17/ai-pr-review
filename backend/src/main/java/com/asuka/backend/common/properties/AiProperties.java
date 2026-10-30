@@ -33,6 +33,11 @@ public class AiProperties {
 
     private DeepSeek deepseek = new DeepSeek();
 
+    /** 当前 provider 实际使用的模型名称，用于任务和报告快照。 */
+    public String getActiveModelName() {
+        return "fake".equalsIgnoreCase(provider) ? "fake" : deepseek.getModel();
+    }
+
     @Data
     public static class DeepSeek {
         private String apiKey = "";

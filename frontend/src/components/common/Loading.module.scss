@@ -1,0 +1,19 @@
+.loading-state {
+  padding: 65px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+
+  img {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 14px;
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

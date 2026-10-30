@@ -1,0 +1,47 @@
+.issue-title {
+  margin: 20px 0 10px;
+  font-size: 20px;
+  line-height: 1.6;
+}
+
+.issue-location {
+  padding: 15px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+
+  > code {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 15px;
+  }
+}
+
+.detail-section {
+  margin: 24px 0;
+
+  p {
+    color: var(--muted);
+    font-size: 12px;
+  }
+}
+
+.evidence {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+}
+
+.original-suggestion {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -8px 0 20px;
+
+  summary {
+    cursor: pointer;
+  }
+}

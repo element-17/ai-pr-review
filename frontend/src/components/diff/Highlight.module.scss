@@ -1,0 +1,16 @@
+.syntax-keyword {
+  color: var(--code-keyword);
+}
+
+.syntax-string {
+  color: var(--code-string);
+}
+
+.syntax-number {
+  color: var(--code-number);
+}
+
+.syntax-comment {
+  color: var(--muted);
+  font-style: italic;
+}
