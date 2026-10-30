@@ -205,8 +205,11 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
     @Override
     public AiModelConfig requireEnabled(Long id) {
-        AiModelConfig config = requireConfig(id);
-        if (config.getEnabled() == null || config.getEnabled() != 1) {
+        if (id == null) {
+            throw new BusinessException(400, "模型不存在或已停用");
+        }
+        AiModelConfig config = modelConfigMapper.selectById(id);
+        if (config == null || config.getEnabled() == null || config.getEnabled() != 1) {
             throw new BusinessException(400, "模型不存在或已停用");
         }
         return config;
