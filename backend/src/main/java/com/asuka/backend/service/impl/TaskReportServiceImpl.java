@@ -1,5 +1,7 @@
 package com.asuka.backend.service.impl;
 
+import com.asuka.backend.common.cache.CacheNames;
+import com.asuka.backend.common.cache.LogicalCacheService;
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.constant.ReviewIssueConstant;
 import com.asuka.backend.common.constant.TaskFileConstant;
@@ -52,15 +54,28 @@ public class TaskReportServiceImpl implements TaskReportService {
     private final TaskAccessService taskAccessService;
     private final TaskStatsService taskStatsService;
     private final AnalysisConfigParser analysisConfigParser;
+    private final LogicalCacheService logicalCacheService;
 
     @Override
     public ReportVO getReport(Long taskId) {
         AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
+        ReportVO vo = TaskStatusConstant.isFinished(task.getStatus())
+                ? logicalCacheService.get(CacheNames.TASK_REPORT, String.valueOf(taskId),
+                        CacheNames.TASK_REPORT_LOGICAL_TTL_SECONDS, () -> buildReport(taskId))
+                : buildReport(taskId);
+        if (vo == null) {
+            throw new BusinessException(404, "报告尚未生成");
+        }
+        return vo;
+    }
+
+    private ReportVO buildReport(Long taskId) {
+        AnalysisTask task = taskAccessService.requireTask(taskId);
         AnalysisReport report = analysisReportMapper.selectOne(
                 new LambdaQueryWrapper<AnalysisReport>().eq(AnalysisReport::getTaskId, taskId));
         if (report == null) {
-            // 失败、取消或尚未进入总结阶段的任务没有报告行
-            throw new BusinessException(404, "报告尚未生成");
+            // 失败、取消或尚未进入总结阶段的任务没有报告行；返回 null 以便缓存空结果
+            return null;
         }
 
         ReportVO vo = new ReportVO();

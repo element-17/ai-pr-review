@@ -1,5 +1,6 @@
 package com.asuka.backend.service.impl;
 
+import com.asuka.backend.common.cache.CacheNames;
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.pojo.dto.UserSettingUpdateDTO;
@@ -9,6 +10,8 @@ import com.asuka.backend.service.UserSettingService;
 import com.asuka.backend.pojo.vo.AnalysisConfigVO;
 import com.asuka.backend.pojo.vo.UserSettingVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -38,6 +41,7 @@ public class UserSettingServiceImpl implements UserSettingService {
     private final UserSettingMapper userSettingMapper;
 
     @Override
+    @Cacheable(cacheNames = CacheNames.USER_SETTING, key = "#userId", sync = true)
     public UserSettingVO getSettings(Long userId) {
         UserSetting setting = userSettingMapper.selectById(userId);
         if (setting == null) {
@@ -47,6 +51,7 @@ public class UserSettingServiceImpl implements UserSettingService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, key = "#userId")
     public UserSettingVO updateSettings(Long userId, UserSettingUpdateDTO dto) {
         if (dto == null || (dto.getTheme() == null && dto.getLanguage() == null
                 && dto.getCheckCategories() == null && dto.getIgnoreDirs() == null
@@ -91,6 +96,7 @@ public class UserSettingServiceImpl implements UserSettingService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {CacheNames.USER_SETTING, CacheNames.USER_SETTING_CONFIG}, key = "#userId")
     public void initDefault(Long userId) {
         if (userSettingMapper.selectById(userId) == null) {
             userSettingMapper.insert(defaultSetting(userId));
@@ -98,6 +104,7 @@ public class UserSettingServiceImpl implements UserSettingService {
     }
 
     @Override
+    @Cacheable(cacheNames = CacheNames.USER_SETTING_CONFIG, key = "#userId", sync = true)
     public AnalysisConfigVO buildAnalysisConfig(Long userId) {
         return toConfig(getSettings(userId));
     }

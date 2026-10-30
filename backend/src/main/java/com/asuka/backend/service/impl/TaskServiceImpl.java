@@ -1,6 +1,8 @@
 package com.asuka.backend.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.asuka.backend.common.cache.CacheNames;
+import com.asuka.backend.common.cache.LogicalCacheService;
 import com.asuka.backend.common.constant.TaskStatusConstant;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.result.PageResult;
@@ -51,6 +53,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskStatsService taskStatsService;
     private final AnalysisConfigParser analysisConfigParser;
     private final PullRequestRefreshService pullRequestRefreshService;
+    private final LogicalCacheService logicalCacheService;
 
     @Override
     public PageResult<TaskListItemVO> pageMyTasks(TaskQueryDTO query) {
@@ -84,6 +87,22 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDetailVO getDetail(Long taskId) {
         AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
+        TaskDetailVO vo = TaskStatusConstant.isFinished(task.getStatus())
+                ? logicalCacheService.get(CacheNames.TASK_DETAIL, String.valueOf(taskId),
+                        CacheNames.TASK_DETAIL_LOGICAL_TTL_SECONDS, () -> buildDetail(taskId))
+                : buildDetail(taskId);
+        // canDelete 依赖当前请求的登录身份，不能放进任务级缓存，缓存读取后再按请求计算
+        Long currentUserId = taskAccessService.currentUserIdOrNull();
+        vo.setCanDelete(currentUserId != null && currentUserId.equals(task.getUserId())
+                && TaskStatusConstant.isFinished(task.getStatus()));
+        return vo;
+    }
+
+    private TaskDetailVO buildDetail(Long taskId) {
+        AnalysisTask task = analysisTaskMapper.selectById(taskId);
+        if (task == null) {
+            throw new BusinessException(404, "任务不存在");
+        }
         // 详情页 best-effort 刷新 PR 当前 head_sha，用于 F04 过期判断；失败时使用缓存值
         PullRequest pr = pullRequestRefreshService.refreshIfStale(task.getPrId());
 
@@ -106,9 +125,6 @@ public class TaskServiceImpl implements TaskService {
                 || task.getStatus() == TaskStatusConstant.FAILED
                 || task.getStatus() == TaskStatusConstant.CANCELED));
 
-        Long currentUserId = taskAccessService.currentUserIdOrNull();
-        vo.setCanDelete(currentUserId != null && currentUserId.equals(task.getUserId())
-                && TaskStatusConstant.isFinished(task.getStatus()));
         vo.setHasReport(analysisReportMapper.selectCount(
                 new LambdaQueryWrapper<AnalysisReport>().eq(AnalysisReport::getTaskId, taskId)) > 0);
 

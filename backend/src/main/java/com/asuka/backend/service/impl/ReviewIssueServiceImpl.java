@@ -1,5 +1,7 @@
 package com.asuka.backend.service.impl;
 
+import com.asuka.backend.common.cache.CacheNames;
+import com.asuka.backend.common.cache.LogicalCacheService;
 import com.asuka.backend.common.constant.ReviewIssueConstant;
 import com.asuka.backend.common.constant.TaskFileConstant;
 import com.asuka.backend.common.exception.BusinessException;
@@ -54,6 +56,7 @@ public class ReviewIssueServiceImpl implements ReviewIssueService {
     private final PullRequestMapper pullRequestMapper;
     private final TaskAccessService taskAccessService;
     private final TaskStatsService taskStatsService;
+    private final LogicalCacheService logicalCacheService;
 
     @Override
     public IssueListVO page(Long taskId, ReviewIssueQueryDTO query) {
@@ -136,6 +139,7 @@ public class ReviewIssueServiceImpl implements ReviewIssueService {
         update.set(ReviewIssue::getFeedbackTime, now);
         update.set(ReviewIssue::getUpdateTime, now);
         reviewIssueMapper.update(null, update);
+        evictTaskCaches(taskId, issue.getFileId());
 
         return toDetail(task, requireIssueOfTask(taskId, issueId));
     }
@@ -155,8 +159,20 @@ public class ReviewIssueServiceImpl implements ReviewIssueService {
                 .set(ReviewIssue::getFeedbackTime, now)
                 .set(ReviewIssue::getUpdateTime, now);
         reviewIssueMapper.update(null, update);
+        evictTaskCaches(taskId, issue.getFileId());
 
         return toDetail(task, requireIssueOfTask(taskId, issueId));
+    }
+
+    /**
+     * 反馈会影响任务统计、报告和 Diff 行上的问题状态，更新后删除对应缓存。
+     */
+    private void evictTaskCaches(Long taskId, Long fileId) {
+        logicalCacheService.evict(CacheNames.TASK_DETAIL, String.valueOf(taskId));
+        logicalCacheService.evict(CacheNames.TASK_REPORT, String.valueOf(taskId));
+        if (fileId != null) {
+            logicalCacheService.evict(CacheNames.TASK_DIFF, taskId + ":" + fileId);
+        }
     }
 
     /**

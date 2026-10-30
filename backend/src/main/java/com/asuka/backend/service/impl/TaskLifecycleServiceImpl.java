@@ -3,6 +3,8 @@ package com.asuka.backend.service.impl;
 import com.asuka.backend.service.TaskLifecycleService;
 import com.asuka.backend.service.TaskAccessService;
 
+import com.asuka.backend.common.cache.CacheNames;
+import com.asuka.backend.common.cache.LogicalCacheService;
 import com.asuka.backend.common.constant.TaskStatusConstant;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.pojo.entity.AnalysisTask;
@@ -25,6 +27,7 @@ public class TaskLifecycleServiceImpl implements TaskLifecycleService {
 
     private final AnalysisTaskMapper analysisTaskMapper;
     private final TaskAccessService taskAccessService;
+    private final LogicalCacheService logicalCacheService;
 
     /**
      * 取消排队/分析中的任务；已取消幂等返回，已结束返回 409。
@@ -69,6 +72,10 @@ public class TaskLifecycleServiceImpl implements TaskLifecycleService {
             throw new BusinessException(409, "任务仍在执行，请先取消");
         }
         analysisTaskMapper.deleteById(taskId);
+        logicalCacheService.evict(CacheNames.TASK_DETAIL, String.valueOf(taskId));
+        logicalCacheService.evict(CacheNames.TASK_REPORT, String.valueOf(taskId));
+        logicalCacheService.evictByPrefix(CacheNames.TASK_FILES, taskId + ":");
+        logicalCacheService.evictByPrefix(CacheNames.TASK_DIFF, taskId + ":");
 
         TaskDeleteVO vo = new TaskDeleteVO();
         vo.setTaskId(taskId);

@@ -1,6 +1,9 @@
 package com.asuka.backend.service.impl;
 
+import com.asuka.backend.common.cache.CacheNames;
+import com.asuka.backend.common.cache.LogicalCacheService;
 import com.asuka.backend.common.constant.TaskFileConstant;
+import com.asuka.backend.common.constant.TaskStatusConstant;
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.result.PageResult;
 import com.asuka.backend.common.util.GitHubUrlUtil;
@@ -43,11 +46,20 @@ public class TaskFileServiceImpl implements TaskFileService {
     private final ReviewIssueMapper reviewIssueMapper;
     private final PullRequestMapper pullRequestMapper;
     private final TaskAccessService taskAccessService;
+    private final LogicalCacheService logicalCacheService;
 
     @Override
     public PageResult<TaskFileVO> page(Long taskId, TaskFileQueryDTO query) {
-        taskAccessService.requireAccessibleTask(taskId);
+        AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
+        if (!TaskStatusConstant.isFinished(task.getStatus())) {
+            return buildPage(taskId, query);
+        }
+        String key = taskId + ":" + queryKey(query);
+        return logicalCacheService.get(CacheNames.TASK_FILES, key,
+                CacheNames.TASK_FILES_LOGICAL_TTL_SECONDS, () -> buildPage(taskId, query));
+    }
 
+    private PageResult<TaskFileVO> buildPage(Long taskId, TaskFileQueryDTO query) {
         LambdaQueryWrapper<TaskFile> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskFile::getTaskId, taskId);
         wrapper.eq(query.getStatus() != null, TaskFile::getStatus, query.getStatus());
@@ -80,7 +92,12 @@ public class TaskFileServiceImpl implements TaskFileService {
 
     @Override
     public TaskFileDetailVO getDetail(Long taskId, Long fileId) {
-        AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
+        taskAccessService.requireAccessibleTask(taskId);
+        return buildFileDetail(taskId, fileId);
+    }
+
+    private TaskFileDetailVO buildFileDetail(Long taskId, Long fileId) {
+        AnalysisTask task = taskAccessService.requireTask(taskId);
         TaskFile file = taskFileMapper.selectById(fileId);
         if (file == null || !taskId.equals(file.getTaskId())) {
             throw new BusinessException(404, "文件不存在或不属于该任务");
@@ -97,7 +114,16 @@ public class TaskFileServiceImpl implements TaskFileService {
 
     @Override
     public TaskFileDiffVO getDiff(Long taskId, Long fileId) {
-        TaskFileDetailVO detail = getDetail(taskId, fileId);
+        AnalysisTask task = taskAccessService.requireAccessibleTask(taskId);
+        if (!TaskStatusConstant.isFinished(task.getStatus())) {
+            return buildDiff(taskId, fileId);
+        }
+        return logicalCacheService.get(CacheNames.TASK_DIFF, taskId + ":" + fileId,
+                CacheNames.TASK_DIFF_LOGICAL_TTL_SECONDS, () -> buildDiff(taskId, fileId));
+    }
+
+    private TaskFileDiffVO buildDiff(Long taskId, Long fileId) {
+        TaskFileDetailVO detail = buildFileDetail(taskId, fileId);
         TaskFileDiffVO vo = new TaskFileDiffVO();
         BeanUtils.copyProperties(detail, vo);
 
@@ -155,6 +181,20 @@ public class TaskFileServiceImpl implements TaskFileService {
             return GitHubUrlUtil.pullFilesUrl(pr.getRepoFullName(), pr.getPrNumber());
         }
         return GitHubUrlUtil.blobUrl(pr.getRepoFullName(), task.getHeadSha(), file.getFilePath(), null, null);
+    }
+
+    /**
+     * 文件列表缓存 key：拼接查询条件，避免把 DTO 对象地址带入 key。
+     */
+    private String queryKey(TaskFileQueryDTO query) {
+        String keyword = StringUtils.hasText(query.getKeyword()) ? query.getKeyword().trim() : "";
+        return "page=" + query.getPage()
+                + "&pageSize=" + query.getPageSize()
+                + "&status=" + query.getStatus()
+                + "&changeType=" + query.getChangeType()
+                + "&priorityOnly=" + Boolean.TRUE.equals(query.getPriorityOnly())
+                + "&keyword=" + keyword
+                + "&sort=" + query.getSort();
     }
 
     private void applySort(LambdaQueryWrapper<TaskFile> wrapper, String sort) {
