@@ -2,8 +2,8 @@
 
 面向开发者的 GitHub Pull Request 智能评审平台：输入公开 PR，异步完成分层总结、重点文件识别、候选问题提取、证据/行号校验，并输出可追溯的报告、人工反馈和 Markdown 导出。
 
-> 当前状态：后端与 React 正式前端已集成，2026-10-23 真实 GitHub + Spring Boot + MySQL/Redis 联调 8/8 通过（模型使用 fake provider）；真实模型质量及 Docker/Nginx 目标机实测仍待验收；X01–X08 加分项未实现。
-> 当前实现基线：`backend-dev` 最新提交（2026-10-24，含正式 React 前端与 F04/F16 修复）。
+> 当前状态：后端与 React 正式前端已集成，2026-10-23 真实 GitHub + Spring Boot + MySQL/Redis 联调 8/8 通过（模型使用 fake provider）；2026-10-30 后端 P0 缓存与 `prod` profile 部署构建已在本地验证；真实模型质量及 Docker/Nginx 目标机实测仍待验收；X01–X08 加分项未实现。
+> 当前实现基线：`backend-dev` 最新提交（2026-10-30，含 P0 缓存与后端部署构建更新）。
 
 ## 目录
 
@@ -56,6 +56,7 @@ npm run dev
 - [测试用例与指标](docs/测试用例与指标.md)
 - [全量业务回归与状态验证](docs/全量业务回归与状态验证.md)
 - [部署与安全检查](docs/部署与安全检查.md)
+- [2026-10-30 后端部署构建更新记录](docs/更新记录/2026-10-30-后端部署构建.md)
 - [答辩材料（后端）](docs/答辩/README.md)
 
 ## 安全
