@@ -1,6 +1,7 @@
 package com.asuka.backend.core.agent.ai;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -15,11 +16,14 @@ public class ModelRequest {
 
     private String model;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ModelMessage> messages;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ModelTool> tools;
 
     /** "auto" 或 OpenAI 兼容的强制函数对象 {"type":"function","function":{"name":"..."}} */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("tool_choice")
     private Object toolChoice = "auto";
 
@@ -28,6 +32,7 @@ public class ModelRequest {
 
     private Double temperature;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, Object> thinking;
 
     private boolean stream = false;

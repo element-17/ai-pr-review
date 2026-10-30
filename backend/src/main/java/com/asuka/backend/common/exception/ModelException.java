@@ -7,6 +7,8 @@ public class ModelException extends RuntimeException {
 
     public enum Kind {
         NOT_CONFIGURED,
+        AUTH,
+        RATE_LIMITED,
         TIMEOUT,
         FORMAT,
         UPSTREAM

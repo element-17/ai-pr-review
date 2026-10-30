@@ -124,7 +124,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUsername(generateGitHubUsername(githubLogin));
         // GitHub 创建的用户没有可用密码，随机值只用于满足 NOT NULL，不允许密码登录
-        user.setPassword(BCrypt.hashpw(UUID.randomUUID() + UUID.randomUUID().toString(), BCrypt.gensalt()));
+        user.setPassword(BCrypt.hashpw(UUID.randomUUID().toString() + UUID.randomUUID(), BCrypt.gensalt()));
         user.setPasswordSet(0);
         user.setNickname(StringUtils.hasText(nickname) ? nickname : githubLogin);
         user.setAvatar(StringUtils.hasText(avatar) && avatar.length() <= 255 ? avatar : null);

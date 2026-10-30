@@ -85,7 +85,32 @@ CREATE TABLE IF NOT EXISTS `user_github_binding`
   COMMENT = '用户 GitHub 账号绑定';
 
 -- ------------------------------------------------------------
--- 3. 用户设置
+-- 3. 管理员模型配置
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ai_model_config`
+(
+    `id`                 BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `display_name`       VARCHAR(100) NOT NULL COMMENT '显示名称',
+    `provider`           VARCHAR(32)  NOT NULL COMMENT '请求格式：OPENAI_CHAT / ANTHROPIC_MESSAGES',
+    `base_url`           VARCHAR(500) NOT NULL COMMENT 'API 根地址，含版本前缀（如 https://api.openai.com/v1）',
+    `model_id`           VARCHAR(200) NOT NULL COMMENT '模型 ID',
+    `api_key_ciphertext` TEXT         NOT NULL COMMENT 'AES-GCM 加密后的 API Key',
+    `api_key_hint`       VARCHAR(16)           DEFAULT NULL COMMENT 'API Key 末 4 位掩码',
+    `max_output_tokens`  INT                   DEFAULT NULL COMMENT '输出 token 上限；空表示使用 provider 默认值',
+    `temperature`        DECIMAL(3, 2)         DEFAULT NULL COMMENT '温度；空表示使用默认值',
+    `enabled`            TINYINT      NOT NULL DEFAULT 1 COMMENT '是否启用：1 是，0 否',
+    `is_default`         TINYINT      NOT NULL DEFAULT 0 COMMENT '是否默认模型：1 是，0 否',
+    `create_time`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_enabled_default` (`enabled`, `is_default`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COMMENT = '管理员模型配置';
+
+-- ------------------------------------------------------------
+-- 4. 用户设置
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `user_setting`
 (

@@ -31,6 +31,9 @@ public class AiProperties {
     /** fake provider 是否额外返回一条无法定位的问题，用于验证降级/部分完成 */
     private boolean fakeInvalidIssue = false;
 
+    /** 是否允许管理员配置私网/localhost 模型地址；仅本地联调使用，生产必须为 false */
+    private boolean allowPrivateBaseUrl = false;
+
     private DeepSeek deepseek = new DeepSeek();
 
     /** 当前 provider 实际使用的模型名称，用于任务和报告快照。 */

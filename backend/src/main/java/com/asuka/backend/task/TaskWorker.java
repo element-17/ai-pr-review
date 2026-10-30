@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 分析任务 worker。
@@ -90,8 +91,12 @@ public class TaskWorker {
             // 任务创建只保存 user_id；worker 按任务归属重新解析 token，不把明文 token 写进任务表
             auth = gitHubTokenProvider.resolveForTask(task);
         } catch (BusinessException ex) {
-            fail(taskId, TaskErrorCodeConstant.GITHUB_USER_TOKEN_INVALID,
-                    "GitHub 授权已失效，请重新授权");
+            int errorCode = ex.getData() instanceof Map<?, ?> data
+                    && Boolean.TRUE.equals(data.get("githubAuthRequired"))
+                    ? TaskErrorCodeConstant.GITHUB_USER_TOKEN_INVALID
+                    : TaskErrorCodeConstant.INTERNAL_ERROR;
+            fail(taskId, errorCode, errorCode == TaskErrorCodeConstant.GITHUB_USER_TOKEN_INVALID
+                    ? "GitHub 授权已失效，请重新授权" : "任务执行上下文初始化失败");
             return;
         }
 

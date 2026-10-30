@@ -5,6 +5,8 @@ import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.exception.GitHubOAuthException;
 import com.asuka.backend.common.properties.GitHubOAuthProperties;
 import com.asuka.backend.core.github.oauth.GitHubOAuthClient;
+import com.asuka.backend.core.github.oauth.GitHubOAuthState;
+import com.asuka.backend.core.github.oauth.GitHubOAuthTicket;
 import com.asuka.backend.core.github.oauth.GitHubOAuthTokenResponse;
 import com.asuka.backend.core.github.oauth.GitHubOAuthUser;
 import com.asuka.backend.pojo.vo.LoginVO;
@@ -14,7 +16,6 @@ import com.asuka.backend.service.GitHubAccountService;
 import com.asuka.backend.service.GitHubBindingService;
 import com.asuka.backend.service.GitHubOAuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,8 +40,6 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final String MODE_LOGIN = "LOGIN";
-    private static final String MODE_BIND = "BIND";
 
     private final GitHubOAuthProperties properties;
     private final GitHubOAuthClient oauthClient;
@@ -52,7 +51,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
     @Override
     public OAuthAuthorizeVO beginLogin() {
         String state = newRandomToken();
-        storeState(state, MODE_LOGIN, null);
+        storeState(state, GitHubOAuthState.MODE_LOGIN, null);
         return OAuthAuthorizeVO.builder()
                 .authorizeUrl(oauthClient.buildAuthorizeUrl(state))
                 .state(state)
@@ -65,7 +64,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
             throw new BusinessException(401, "登录状态已失效，请重新登录");
         }
         String state = newRandomToken();
-        storeState(state, MODE_BIND, userId);
+        storeState(state, GitHubOAuthState.MODE_BIND, userId);
         return OAuthAuthorizeVO.builder()
                 .authorizeUrl(oauthClient.buildAuthorizeUrl(state))
                 .state(state)
@@ -74,7 +73,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
 
     @Override
     public String handleCallback(String code, String state, String error) {
-        OAuthState payload = consumeState(state);
+        GitHubOAuthState payload = consumeState(state);
         if (payload == null) {
             log.warn("GitHub OAuth 回调 state 无效或已过期");
             return redirectError(null, "STATE_INVALID");
@@ -94,7 +93,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
                 user.setEmail(oauthClient.getPrimaryEmail(token.getAccessToken()));
             }
 
-            if (MODE_BIND.equals(payload.getMode())) {
+            if (GitHubOAuthState.MODE_BIND.equals(payload.getMode())) {
                 if (payload.getUserId() == null) {
                     return redirectError(payload, "STATE_INVALID");
                 }
@@ -130,7 +129,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
             throw new BusinessException(400, "ticket 已失效，请重新登录");
         }
         try {
-            TicketPayload payload = OBJECT_MAPPER.readValue(json, TicketPayload.class);
+            GitHubOAuthTicket payload = OBJECT_MAPPER.readValue(json, GitHubOAuthTicket.class);
             return authService.issueTokensForUser(payload.getUserId());
         } catch (BusinessException ex) {
             throw ex;
@@ -141,7 +140,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
     }
 
     private void storeState(String state, String mode, Long userId) {
-        OAuthState payload = new OAuthState();
+        GitHubOAuthState payload = new GitHubOAuthState();
         payload.setMode(mode);
         payload.setUserId(userId);
         try {
@@ -154,7 +153,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
         }
     }
 
-    private OAuthState consumeState(String state) {
+    private GitHubOAuthState consumeState(String state) {
         if (!StringUtils.hasText(state)) {
             return null;
         }
@@ -164,7 +163,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readValue(json, OAuthState.class);
+            return OBJECT_MAPPER.readValue(json, GitHubOAuthState.class);
         } catch (Exception ex) {
             log.warn("GitHub OAuth state 解析失败：{}", ex.getClass().getSimpleName());
             return null;
@@ -172,7 +171,7 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
     }
 
     private String createTicket(Long userId) {
-        TicketPayload payload = new TicketPayload();
+        GitHubOAuthTicket payload = new GitHubOAuthTicket();
         payload.setUserId(userId);
         String ticket = newRandomToken();
         try {
@@ -186,8 +185,8 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
         return ticket;
     }
 
-    private String redirectError(OAuthState payload, String reason) {
-        if (payload != null && MODE_BIND.equals(payload.getMode())) {
+    private String redirectError(GitHubOAuthState payload, String reason) {
+        if (payload != null && GitHubOAuthState.MODE_BIND.equals(payload.getMode())) {
             return buildUrl(properties.getFrontendBindResultUrl(), "githubBindError", reason);
         }
         return buildUrl(properties.getFrontendLoginCallbackUrl(), "githubError", reason);
@@ -223,16 +222,5 @@ public class GitHubOAuthServiceImpl implements GitHubOAuthService {
         byte[] bytes = new byte[32];
         SECURE_RANDOM.nextBytes(bytes);
         return HexFormat.of().formatHex(bytes);
-    }
-
-    @Data
-    public static class OAuthState {
-        private String mode;
-        private Long userId;
-    }
-
-    @Data
-    public static class TicketPayload {
-        private Long userId;
     }
 }
