@@ -50,6 +50,13 @@
 | POST | `/api/auth/login` | 用户名密码登录，返回双 token | 否 |
 | POST | `/api/auth/refresh` | 使用 refresh-token 换取新双 token | 否 |
 | POST | `/api/auth/register` | 注册普通用户 | 否 |
+| GET | `/api/auth/github/login/authorize` | 获取 GitHub 登录授权地址 | 否 |
+| GET | `/api/auth/github/callback` | GitHub OAuth 回调，302 回前端 | 否 |
+| POST | `/api/auth/github/exchange` | 用一次性 ticket 兑换双 token | 否 |
+| GET | `/api/auth/github/bind/authorize` | 获取当前用户绑定 GitHub 的授权地址 | 是 |
+| GET | `/api/auth/github/binding` | 读取 GitHub 绑定状态 | 是 |
+| DELETE | `/api/auth/github/binding` | 解绑 GitHub | 是 |
+| PUT | `/api/users/me/password` | 设置/修改密码 | 是 |
 | POST | `/api/auth/logout` | 退出登录并撤销 refresh-token | 是 |
 | GET | `/api/auth/me` | 当前登录用户 | 是 |
 
@@ -58,6 +65,27 @@
 ```text
 Authorization: Bearer <accessToken>
 ```
+
+### GitHub 登录与绑定
+
+- OAuth App 配置：`pr.github.oauth.client-id/client-secret/callback-url/frontend-login-callback-url/frontend-bind-result-url`；secret 只放环境变量或本地忽略配置。
+- state 与一次性 ticket 存 Redis，state 一次性消费，防止过期/重放；回调只 302 到前端，不把 GitHub token 放进 URL。
+- GitHub 数字 id 是唯一绑定键；login/avatar/email 只作展示，一个 GitHub 账号只能绑定一个本地账号。
+- GitHub 创建的用户名为 `gh_{login}`，随机不可用密码，`password_set=0`；解绑前必须先设置密码。
+- GitHub token 使用 AES-GCM 加密存入 `user_github_binding.access_token_ciphertext`，接口只返回绑定状态、scope、授权时间和 token 状态。
+- GitHub 登录用户、账密登录但已绑定用户都会使用自己的 token 拉 PR。
+
+### GitHub Token 选择
+
+```text
+已绑定用户 token → 配置文件公用 token → 无 token
+```
+
+- 已绑定用户 token 失效（401 或 token_status != 1）：预览/建任务返回 403 + `data.githubAuthRequired=true`；异步任务 `errorCode=10`，不回退公用 token。
+- 公用 token 配置但无效：接口 502，任务 `errorCode=11`。
+- 公用 token 未配置或为占位符：无 token 请求，受 GitHub 60 次/小时限制；接口 429，任务 `errorCode=2`。
+- 预览缓存只缓存无 token 的公开请求；用户/公用 token 请求不走共享缓存。
+- 任务创建只保存 `user_id`，worker 按任务归属重新解析 token，不把明文 token 写进 `analysis_task`。
 
 ## 用户管理接口（ADMIN）
 
@@ -102,12 +130,34 @@ Authorization: Bearer <accessToken>
 - 历史列表 `/api/tasks` 只对登录用户开放，游客任务不会出现在他人的历史记录中。
 - 分页统一返回 `PageResult{total, records}`；成功码沿用当前骨架的 `200`。
 - 为保持字段语义，接口会保留值为 `null` 的字段，例如报告级问题没有 `filePath` 和行号。
-- AI 分析使用 OpenAI 兼容 provider（当前联调模型 `deepseek/deepseek-v4.1-flash`，两阶段：PR 总结/重点文件 + 逐批 3–5 个文件提取问题）；`pr.ai.deepseek.base-url`、`model` 可切换其他兼容服务。
+- AI 分析支持管理员配置的 OpenAI Chat Completions 兼容和 Anthropic Messages 兼容模型；没有数据库模型配置时回退 `pr.ai.provider=deepseek/fake` 环境配置（两阶段：PR 总结/重点文件 + 逐批 3–5 个文件提取问题）。`pr.ai.deepseek.base-url`、`model` 可切换其他 OpenAI 兼容服务。
 - 无模型 Key 时可设置 `pr.ai.provider=fake`，用确定性 fake client 验证 agent 工具循环和报告链路；`pr.ai.stub-pipeline=true` 只用于状态机测试。
 - 游客创建任务每 IP 每小时 5 次；预览每 IP 每分钟 30 次；创建/重试支持 `Idempotency-Key`，TTL 10 分钟。
 - 服务重启后，排队任务重新投递，运行中任务标记失败 `errorCode=8`。
 - 数据库账号模型已统一为 `user`，旧库迁移脚本：`deploy/sql/migration-20261023-rename-sys-user-to-user.sql`。
 - 任务重试字段迁移脚本：`deploy/sql/migration-20261022-retry-of-task.sql`。
+
+## 模型配置与用户偏好
+
+管理员接口（全部要求 `ADMIN`）：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/admin/model-configs?enabled=` | 模型列表，只返回 Key 掩码 |
+| GET | `/api/admin/model-configs/{id}` | 详情 |
+| POST | `/api/admin/model-configs` | 新增；apiKey 必填 |
+| PUT | `/api/admin/model-configs/{id}` | 更新；apiKey 为空保留原 Key |
+| PUT | `/api/admin/model-configs/{id}/status?enabled=` | 启用/停用 |
+| PUT | `/api/admin/model-configs/{id}/default` | 设为默认 |
+| POST | `/api/admin/model-configs/test` | 测试未保存配置 |
+| POST | `/api/admin/model-configs/{id}/test` | 测试已保存配置 |
+
+- provider 支持 `OPENAI_CHAT` 和 `ANTHROPIC_MESSAGES`；两套客户端统一走 `ModelClientRouter`，返回统一 `ModelResponse`。
+- API Key 使用 AES-GCM 加密，密钥来自 `PR_SECURITY_ENCRYPTION_KEY`（Base64 32 字节）；接口只返回 `apiKeyConfigured` 和末 4 位掩码。
+- base URL 生产默认只允许 HTTPS、公网地址和 443 端口；本地联调可设置 `pr.ai.allow-private-base-url=true`。
+- 普通用户通过 `GET /api/models/available` 读取 enabled 模型；`PATCH /api/users/me/settings` 的 `preferredModelId` 只能是 enabled 模型，`0` 表示清除偏好。
+- 模型解析优先级：用户偏好 → 管理员默认 → 环境兜底；重试优先沿用原任务模型；停用偏好模型后保留选择但实际回退默认。
+- 任务写 `model_config_id` 和 `analysis_config.model` 快照；详情/报告返回 `modelDisplayName/modelProvider`，历史任务不随配置改名/停用改变。
 
 ## AI 分析
 
@@ -150,7 +200,8 @@ Redis key：
 - 全量 API/状态回归见 [../docs/全量业务回归与状态验证.md](../docs/全量业务回归与状态验证.md)。
 - 非平凡需求方案见 [../docs/非平凡需求设计说明.md](../docs/非平凡需求设计说明.md)，交互流程见 [../docs/交互流程.md](../docs/交互流程.md)，数据状态见 [../docs/数据与状态变更.md](../docs/数据与状态变更.md)。
 - 20 个测试用例、真实模型指标、误报/漏报分析见 [../docs/测试用例与指标.md](../docs/测试用例与指标.md)。
-- 真实模型验证：`deepseek/deepseek-v4.1-flash` 分析 `octocat/Hello-World#11596`，任务 status=3、20.8 秒、3 次调用、4504 tokens。
+- 真实模型验证：`deepseek/deepseek-v4.1-flash` 分析 `octocat/Hello-World#11596`，任务 status=3、20.8 秒、3 次调用、4504 tokens；管理员模型配置路径已用本地 mock OpenAI/Anthropic 完成浏览器联调。
+- 单元/协议测试：`.\mvnw.cmd test` 当前 26 个用例，0 失败，1 跳过（真实 GitHub live test 默认跳过）。
 - 双模型对比与选型见 [../docs/模型对比与选型.md](../docs/模型对比与选型.md)：v4.1 Flash 默认，v4 Pro 作为复杂 PR 可选；对比脚本 `scripts/model-comparison.mjs`。
 - 大 Diff、模型超时、启动恢复、非法输出部分完成等异常路径均已实际执行并记录。
 
@@ -160,26 +211,28 @@ Redis key：
 
 ```text
 common.constant/context    -> 状态码、错误码、用户上下文
+common.crypto              -> AES-GCM 敏感数据加解密
 common.exception           -> 全局异常处理器和自定义异常
 common.result              -> Result、PageResult
-common.util                -> PatchLineIndex、PatchDiffParser、GitHubUrlUtil、二进制/语言检测
+common.util                -> PatchLineIndex、PatchDiffParser、GitHubUrlUtil、BaseUrlValidator、二进制/语言检测
 common.logging             -> 日志脱敏、traceId 过滤器
 common.interceptor         -> 登录用户上下文拦截器
-common.properties          -> AiProperties、GitHubProperties、PrAppProperties、TaskProperties
+common.properties          -> AiProperties、GitHubProperties、GitHubOAuthProperties、SecurityProperties、PrAppProperties、TaskProperties
 
 pojo.dto / pojo.entity / pojo.vo -> 入参、数据库实体、出参
 
 core.analysis              -> AI 分析流水线、上下文、校验和内部模型
 core.agent                 -> agent 工具循环、工具定义/注册和提交结果
-core.agent.ai              -> 模型客户端、请求/响应协议和 fake 客户端
+core.agent.ai              -> OpenAI/Anthropic 客户端、ModelClientRouter、运行时配置、fake 客户端
 core.github                -> GitHub 客户端、URL 解析、错误映射和 DTO
+core.github.oauth          -> GitHub OAuth 客户端、state/ticket 载荷
 
 controller.auth/admin/user -> 认证、管理员和用户侧 HTTP 接口
-service                    -> 业务接口（任务、设置、导出、问题反馈等）
+service                    -> 业务接口（任务、设置、模型、导出、问题反馈等）
 service.impl               -> 业务接口实现（XxxServiceImpl）
 task                       -> TaskWorker、TaskDispatcher、TaskRecoveryRunner
 mapper                     -> BaseMapper 单表 CRUD；XML 复杂查询
-config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、MVC
+config                     -> MyBatis-Plus、Sa-Token、线程池、Swagger、CORS/MVC
 ```
 
 `core.analysis` 使用 `AnalysisResult`、`AnalysisContext`、`IssueDraft`、`IssueDraftList`、`SummaryDraft`、`IssueValidationResult`；`core.agent` 使用 `AgentContext`、`AgentSubmission` 等明确的 agent 数据名，避免和 service/util 混淆。

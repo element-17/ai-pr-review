@@ -2,8 +2,8 @@
 
 面向开发者的 GitHub Pull Request 智能评审平台：输入公开 PR，异步完成分层总结、重点文件识别、候选问题提取、证据/行号校验，并输出可追溯的报告、人工反馈和 Markdown 导出。
 
-> 当前状态：后端与 React 正式前端已集成，2026-10-23 真实 GitHub + Spring Boot + MySQL/Redis 联调 8/8 通过（模型使用 fake provider）；2026-10-30 后端 P0 缓存与 `prod` profile 部署构建已在本地验证；真实模型质量及 Docker/Nginx 目标机实测仍待验收；X01–X08 加分项未实现。
-> 当前实现基线：`backend-dev` 最新提交（2026-10-30，含 P0 缓存与后端部署构建更新）。
+> 当前状态：后端与 React 正式前端已集成，2026-10-23 真实 GitHub + Spring Boot + MySQL/Redis 联调 8/8 通过（模型使用 fake provider）；2026-10-30 后端 P0 缓存与 `prod` profile 部署构建已在本地验证；同日新增 GitHub OAuth 登录/绑定、用户级 GitHub Token、管理员 OpenAI/Anthropic 模型配置和用户偏好模型，并完成 26 个后端用例与 18080 本地 mock 模型浏览器联调。真实 OAuth App、真实 Anthropic Key 及 Docker/Nginx 目标机实测仍待验收；X01–X08 加分项未实现。
+> 当前实现基线：`backend-dev` 最新提交（2026-10-30，含 P0 缓存、后端部署构建与 GitHub/模型配置增量）。
 
 ## 目录
 
@@ -50,6 +50,7 @@ npm run dev
 
 - [docs/README.md](docs/README.md)：全部文档索引、阅读路径和当前状态
 - [接口文档](docs/接口文档.md)
+- [前端对接-GitHub登录与模型配置](docs/前端对接-GitHub登录与模型配置.md)
 - [非平凡需求设计说明](docs/非平凡需求设计说明.md)
 - [交互流程](docs/交互流程.md)
 - [数据与状态变更](docs/数据与状态变更.md)

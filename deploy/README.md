@@ -23,12 +23,12 @@ docker compose logs -f backend
 
 后端以 `prod` profile 启动，MySQL/Redis/模型/GitHub 配置全部由 Compose 环境变量注入；JDBC driver 在 `application.yml` 中带有默认值。变量与 Spring 配置的对应关系见 [部署与安全检查](../docs/部署与安全检查.md)。
 
-首次启动会自动创建 MySQL 表；如果已有 `mysql-data` 卷，请按日期顺序手动执行迁移脚本：
+首次启动会自动创建 MySQL 表（当前 9 张：含 `user_github_binding`、`ai_model_config` 及新增字段）；如果已有 `mysql-data` 卷，请按日期顺序手动执行迁移脚本：
 
 1. `sql/migration-20261022-retry-of-task.sql`
 2. `sql/migration-20261023-rename-sys-user-to-user.sql`
 
-已执行过的迁移不要重复执行。
+已执行过的迁移不要重复执行。2026-10-30 的 GitHub 登录/模型配置增量按项目约定不新增 migration 脚本：全新库直接使用最新 `sql/schema.sql`；已有库需要手工同步新增表/字段（本地测试库已完成），生产上线前再按目标库情况评估 DDL。
 
 ## 前端
 

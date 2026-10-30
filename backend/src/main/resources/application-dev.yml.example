@@ -43,6 +43,8 @@ pr:
   ai:
     # deepseek：真实模型；fake：无 Key 的本地联调/自动化测试
     provider: deepseek
+    # 仅本地自建模型/联调时设为 true；生产保持 false
+    allow-private-base-url: ${PR_AI_ALLOW_PRIVATE_BASE_URL:false}
     batch-size: 4
     # 大 PR 的批内并发数，1-4；1 表示串行
     batch-concurrency: 2
