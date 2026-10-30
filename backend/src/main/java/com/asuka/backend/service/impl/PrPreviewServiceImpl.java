@@ -5,11 +5,13 @@ import com.asuka.backend.service.PrPreviewService;
 import com.asuka.backend.service.PullRequestService;
 import com.asuka.backend.service.RateLimitService;
 import com.asuka.backend.service.TaskAccessService;
+import com.asuka.backend.service.GitHubTokenProvider;
 
 import com.asuka.backend.common.exception.BusinessException;
 import com.asuka.backend.common.properties.GitHubProperties;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.GitHubErrorMapper;
 import com.asuka.backend.core.github.GitHubPrUrlParser;
@@ -42,6 +44,7 @@ public class PrPreviewServiceImpl implements PrPreviewService {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final GitHubClient gitHubClient;
+    private final GitHubTokenProvider gitHubTokenProvider;
     private final PullRequestService pullRequestService;
     private final AnalysisTaskMapper analysisTaskMapper;
     private final TaskAccessService taskAccessService;
@@ -52,16 +55,19 @@ public class PrPreviewServiceImpl implements PrPreviewService {
     public PrPreviewVO preview(String url) {
         rateLimitService.checkPreview();
         GitHubPrUrlParser.PrUrl ref = GitHubPrUrlParser.parse(url);
+        Long userId = taskAccessService.requireOptionalLogin();
+        GitHubAuth auth = gitHubTokenProvider.resolveForUser(userId);
 
         GitHubPrResponse response;
         try {
-            response = loadPullRequest(ref);
+            response = loadPullRequest(ref, auth);
+            gitHubTokenProvider.markValidated(auth);
         } catch (GitHubApiException ex) {
-            throw GitHubErrorMapper.toBusinessException(ex);
+            gitHubTokenProvider.handleFailure(auth, ex);
+            throw GitHubErrorMapper.toBusinessException(ex, auth);
         }
 
         PullRequest pr = pullRequestService.upsert(ref.repoFullName(), response);
-        Long userId = taskAccessService.requireOptionalLogin();
 
         PrPreviewVO vo = new PrPreviewVO();
         vo.setPr(toPrVO(pr));
@@ -72,26 +78,31 @@ public class PrPreviewServiceImpl implements PrPreviewService {
     }
 
     /**
-     * 预览缓存 30–60 秒；任务创建时必须重新拉取 head SHA。
+     * 只缓存无 token 的公开预览；用户/公用 token 可能访问私有 PR，不能跨请求共享缓存。
      */
-    private GitHubPrResponse loadPullRequest(GitHubPrUrlParser.PrUrl ref) {
-        String key = "pr:preview:" + ref.repoFullName() + ":" + ref.number();
-        try {
-            String cached = stringRedisTemplate.opsForValue().get(key);
-            if (StringUtils.hasText(cached)) {
-                return OBJECT_MAPPER.readValue(cached, GitHubPrResponse.class);
+    private GitHubPrResponse loadPullRequest(GitHubPrUrlParser.PrUrl ref, GitHubAuth auth) {
+        boolean cacheable = auth.getSource() == GitHubAuth.Source.NONE;
+        String key = "pr:preview:public:" + ref.repoFullName() + ":" + ref.number();
+        if (cacheable) {
+            try {
+                String cached = stringRedisTemplate.opsForValue().get(key);
+                if (StringUtils.hasText(cached)) {
+                    return OBJECT_MAPPER.readValue(cached, GitHubPrResponse.class);
+                }
+            } catch (Exception ex) {
+                log.debug("读取 PR 预览缓存失败：{}", ref.repoFullName());
             }
-        } catch (Exception ex) {
-            log.debug("读取 PR 预览缓存失败：{}", ref.repoFullName());
         }
 
-        GitHubPrResponse response = gitHubClient.getPullRequest(ref.owner(), ref.repo(), ref.number());
-        try {
-            String json = OBJECT_MAPPER.writeValueAsString(response);
-            stringRedisTemplate.opsForValue().set(key, json,
-                    Duration.ofSeconds(Math.max(30, gitHubProperties.getPreviewCacheSeconds())));
-        } catch (Exception ex) {
-            log.debug("写入 PR 预览缓存失败：{}", ref.repoFullName());
+        GitHubPrResponse response = gitHubClient.getPullRequest(ref.owner(), ref.repo(), ref.number(), auth);
+        if (cacheable) {
+            try {
+                String json = OBJECT_MAPPER.writeValueAsString(response);
+                stringRedisTemplate.opsForValue().set(key, json,
+                        Duration.ofSeconds(Math.max(30, gitHubProperties.getPreviewCacheSeconds())));
+            } catch (Exception ex) {
+                log.debug("写入 PR 预览缓存失败：{}", ref.repoFullName());
+            }
         }
         return response;
     }

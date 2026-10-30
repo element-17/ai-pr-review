@@ -14,6 +14,7 @@ import com.asuka.backend.common.exception.AgentException;
 import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.exception.ModelException;
 import com.asuka.backend.common.exception.GitHubApiException;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubCommitResponse;
 import com.asuka.backend.core.github.dto.GitHubPrResponse;
@@ -74,7 +75,7 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
     private final IssueValidationService issueValidationService;
 
     @Override
-    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config) {
+    public AnalysisResult run(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth) {
         String[] repo = pr.getRepoFullName().split("/", 2);
         if (repo.length != 2) {
             throw new AnalysisPipelineException(TaskErrorCodeConstant.INTERNAL_ERROR, "仓库全名格式错误");
@@ -84,19 +85,19 @@ public class DeepSeekAnalysisPipeline implements AnalysisPipeline {
                 .eq(TaskFile::getTaskId, task.getId()));
         AnalysisContext taskContext = new AnalysisContext(task.getId(), repo[0], repo[1],
                 task.getHeadSha(), files, new ContextFileCache());
-        ContextBuilder contextBuilder = new ContextBuilder(gitHubClient, taskContext);
+        ContextBuilder contextBuilder = new ContextBuilder(gitHubClient, taskContext, auth);
         boolean english = ReportLanguageConstant.EN_US.equals(task.getReportLanguage());
 
         String prBody = null;
         try {
-            GitHubPrResponse response = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber());
+            GitHubPrResponse response = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber(), auth);
             prBody = response.getBody();
         } catch (GitHubApiException ex) {
             log.debug("读取 PR 描述失败，使用标题和 commit 信息：{}#{}", pr.getRepoFullName(), pr.getPrNumber());
         }
         List<GitHubCommitResponse> commits = List.of();
         try {
-            commits = gitHubClient.listPullRequestCommits(repo[0], repo[1], pr.getPrNumber(), 100);
+            commits = gitHubClient.listPullRequestCommits(repo[0], repo[1], pr.getPrNumber(), 100, auth);
         } catch (GitHubApiException ex) {
             log.debug("读取 PR commit 信息失败：{}#{}", pr.getRepoFullName(), pr.getPrNumber());
         }

@@ -8,6 +8,7 @@ package com.asuka.backend.common.exception;
 public class GitHubApiException extends RuntimeException {
 
     public enum Kind {
+        UNAUTHORIZED,
         NOT_FOUND,
         RATE_LIMITED,
         FORBIDDEN,

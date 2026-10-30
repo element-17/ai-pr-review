@@ -3,6 +3,7 @@ package com.asuka.backend.core.github;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
@@ -56,7 +57,7 @@ class GitHubIngestionLiveTest {
 
     @Test
     void ingestFilesFromPublicPr() {
-        GitHubPrResponse response = gitHubClient.getPullRequest("octocat", "Hello-World", 11596);
+        GitHubPrResponse response = gitHubClient.getPullRequest("octocat", "Hello-World", 11596, GitHubAuth.none());
         PullRequest pr = pullRequestService.upsert("octocat/Hello-World", response);
 
         AnalysisTask task = new AnalysisTask();
@@ -74,7 +75,7 @@ class GitHubIngestionLiveTest {
             AnalysisConfigVO config = new AnalysisConfigVO();
             config.setMaxFileCount(200);
             config.setMaxDiffLines(20000);
-            List<TaskFile> files = taskFileIngestionService.ingest(task, pr, config);
+            List<TaskFile> files = taskFileIngestionService.ingest(task, pr, config, GitHubAuth.none());
 
             assertFalse(files.isEmpty(), "公开 PR 应至少有一个变更文件");
             Long count = taskFileMapper.selectCount(new LambdaQueryWrapper<TaskFile>()

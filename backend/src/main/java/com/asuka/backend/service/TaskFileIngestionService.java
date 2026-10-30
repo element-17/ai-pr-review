@@ -1,5 +1,6 @@
 package com.asuka.backend.service;
 
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
@@ -12,5 +13,5 @@ import java.util.List;
  */
 public interface TaskFileIngestionService {
 
-    List<TaskFile> ingest(AnalysisTask task, PullRequest pr, AnalysisConfigVO config);
+    List<TaskFile> ingest(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth);
 }

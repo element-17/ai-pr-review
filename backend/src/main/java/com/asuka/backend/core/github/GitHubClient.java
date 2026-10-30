@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -60,30 +61,26 @@ public class GitHubClient {
                 .defaultHeader("Accept", "application/vnd.github+json")
                 .defaultHeader("X-GitHub-Api-Version", "2022-11-28")
                 .defaultHeader("User-Agent", properties.getUserAgent());
-
-        if (StringUtils.hasText(properties.getToken())) {
-            builder.defaultHeader("Authorization", "Bearer " + properties.getToken());
-        }
         this.restClient = builder.build();
     }
 
     /**
      * 拉取 PR 元数据。
      */
-    public GitHubPrResponse getPullRequest(String owner, String repo, int number) {
-        String json = getForString("/repos/{owner}/{repo}/pulls/{number}", null, owner, repo, number);
+    public GitHubPrResponse getPullRequest(String owner, String repo, int number, GitHubAuth auth) {
+        String json = getForString("/repos/{owner}/{repo}/pulls/{number}", null, auth, owner, repo, number);
         return read(json, GitHubPrResponse.class);
     }
 
     /**
      * 拉取 PR 文件变更，自动分页。GitHub 最多返回 3000 个文件。
      */
-    public List<GitHubFileResponse> listPullRequestFiles(String owner, String repo, int number) {
+    public List<GitHubFileResponse> listPullRequestFiles(String owner, String repo, int number, GitHubAuth auth) {
         List<GitHubFileResponse> all = new ArrayList<>();
         for (int page = 1; page <= MAX_FILE_PAGES; page++) {
             String json = getForString(
                     "/repos/{owner}/{repo}/pulls/{number}/files?per_page=" + PER_PAGE + "&page={page}",
-                    null, owner, repo, number, page);
+                    null, auth, owner, repo, number, page);
             List<GitHubFileResponse> current = readList(json, new TypeReference<>() {
             });
             all.addAll(current);
@@ -97,13 +94,14 @@ public class GitHubClient {
     /**
      * 拉取 PR 提交信息，最多 max 条。
      */
-    public List<GitHubCommitResponse> listPullRequestCommits(String owner, String repo, int number, int max) {
+    public List<GitHubCommitResponse> listPullRequestCommits(String owner, String repo, int number, int max,
+                                                             GitHubAuth auth) {
         List<GitHubCommitResponse> all = new ArrayList<>();
         int target = Math.max(1, Math.min(max, 100));
         for (int page = 1; page <= 2; page++) {
             String json = getForString(
                     "/repos/{owner}/{repo}/pulls/{number}/commits?per_page=" + PER_PAGE + "&page={page}",
-                    null, owner, repo, number, page);
+                    null, auth, owner, repo, number, page);
             List<GitHubCommitResponse> current = readList(json, new TypeReference<>() {
             });
             all.addAll(current);
@@ -119,14 +117,14 @@ public class GitHubClient {
      *
      * <p>只允许仓库相对路径；读取结果超过 200KB 或包含二进制内容时拒绝。
      */
-    public String getFileContent(String owner, String repo, String path, String ref) {
+    public String getFileContent(String owner, String repo, String path, String ref, GitHubAuth auth) {
         if (!StringUtils.hasText(path) || path.startsWith("/") || path.contains("..")) {
             throw new GitHubApiException(GitHubApiException.Kind.UNKNOWN, 0, "文件路径非法");
         }
         String encodedPath = encodePath(path);
         String content = getForString(
                 "/repos/{owner}/{repo}/contents/" + encodedPath + "?ref={ref}",
-                "application/vnd.github.raw", owner, repo, ref);
+                "application/vnd.github.raw", auth, owner, repo, ref);
         if (content == null) {
             throw new GitHubApiException(GitHubApiException.Kind.NOT_FOUND, 404, "文件不存在");
         }
@@ -142,12 +140,13 @@ public class GitHubClient {
     /**
      * 列出目录内容，用于查找测试文件和同目录调用方。
      */
-    public List<GitHubContentItem> listDirectory(String owner, String repo, String path, String ref) {
+    public List<GitHubContentItem> listDirectory(String owner, String repo, String path, String ref,
+                                                 GitHubAuth auth) {
         String suffix = StringUtils.hasText(path) && !".".equals(path)
                 ? "/" + encodePath(path) : "";
         String json = getForString(
                 "/repos/{owner}/{repo}/contents" + suffix + "?ref={ref}",
-                "application/vnd.github+json", owner, repo, ref);
+                "application/vnd.github+json", auth, owner, repo, ref);
         try {
             JsonNode root = OBJECT_MAPPER.readTree(json);
             List<GitHubContentItem> items = new ArrayList<>();
@@ -165,15 +164,18 @@ public class GitHubClient {
         }
     }
 
-    private String getForString(String path, String accept, Object... uriVars) {
+    private String getForString(String path, String accept, GitHubAuth auth, Object... uriVars) {
         long started = System.currentTimeMillis();
         int attempt = 0;
         while (true) {
             try {
-                var uriSpec = restClient.get().uri(path, uriVars);
-                var spec = StringUtils.hasText(accept)
-                        ? uriSpec.accept(MediaType.parseMediaType(accept))
-                        : uriSpec;
+                RestClient.RequestHeadersSpec<?> spec = restClient.get().uri(path, uriVars);
+                if (StringUtils.hasText(accept)) {
+                    spec = spec.accept(MediaType.parseMediaType(accept));
+                }
+                if (auth != null && auth.hasToken()) {
+                    spec = spec.header(HttpHeaders.AUTHORIZATION, "Bearer " + auth.getToken());
+                }
                 String body = spec.retrieve().body(String.class);
                 long durationMs = System.currentTimeMillis() - started;
                 if (durationMs >= 1000) {
@@ -225,11 +227,13 @@ public class GitHubClient {
         int status = ex.getStatusCode().value();
         boolean rateLimited = status == 429 || (status == 403 && isRateLimited(ex));
         GitHubApiException.Kind kind;
-        if (status == 404) {
+        if (status == 401) {
+            kind = GitHubApiException.Kind.UNAUTHORIZED;
+        } else if (status == 404) {
             kind = GitHubApiException.Kind.NOT_FOUND;
         } else if (rateLimited) {
             kind = GitHubApiException.Kind.RATE_LIMITED;
-        } else if (status == 401 || status == 403) {
+        } else if (status == 403) {
             kind = GitHubApiException.Kind.FORBIDDEN;
         } else if (status >= 500) {
             kind = GitHubApiException.Kind.SERVER_ERROR;

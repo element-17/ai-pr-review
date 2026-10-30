@@ -34,6 +34,12 @@ public final class TaskErrorCodeConstant {
     /** 任务创建后 PR 又产生新提交，当前任务不再对应最新 head */
     public static final int PR_CHANGED = 9;
 
+    /** 已绑定用户的 GitHub 授权失效，需要重新授权 */
+    public static final int GITHUB_USER_TOKEN_INVALID = 10;
+
+    /** 服务端公用 GitHub Token 无效 */
+    public static final int GITHUB_SHARED_TOKEN_INVALID = 11;
+
     private TaskErrorCodeConstant() {
     }
 }

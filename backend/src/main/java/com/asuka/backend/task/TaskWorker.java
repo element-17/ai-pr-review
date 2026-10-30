@@ -11,9 +11,12 @@ import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
 import com.asuka.backend.common.exception.ModelException;
 import com.asuka.backend.common.exception.GitHubApiException;
+import com.asuka.backend.common.exception.BusinessException;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubErrorMapper;
 import com.asuka.backend.common.exception.AnalysisPipelineException;
 import com.asuka.backend.common.exception.TaskCanceledException;
+import com.asuka.backend.service.GitHubTokenProvider;
 import com.asuka.backend.service.TaskFileIngestionService;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.PullRequestMapper;
@@ -46,6 +49,7 @@ public class TaskWorker {
     private final TaskFileIngestionService taskFileIngestionService;
     private final AnalysisPipeline analysisPipeline;
     private final AnalysisConfigParser analysisConfigParser;
+    private final GitHubTokenProvider gitHubTokenProvider;
 
     public void process(Long taskId) {
         MDC.put("traceId", "task-" + taskId);
@@ -81,19 +85,28 @@ public class TaskWorker {
             return;
         }
         AnalysisConfigVO config = analysisConfigParser.parse(task.getAnalysisConfig(), taskId);
+        GitHubAuth auth;
+        try {
+            // 任务创建只保存 user_id；worker 按任务归属重新解析 token，不把明文 token 写进任务表
+            auth = gitHubTokenProvider.resolveForTask(task);
+        } catch (BusinessException ex) {
+            fail(taskId, TaskErrorCodeConstant.GITHUB_USER_TOKEN_INVALID,
+                    "GitHub 授权已失效，请重新授权");
+            return;
+        }
 
         try {
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_PR, 10);
             updateProgress(taskId, TaskStatusConstant.STAGE_FETCH_FILES, 20);
             long fetchStarted = System.currentTimeMillis();
-            List<TaskFile> files = taskFileIngestionService.ingest(task, pr, config);
+            List<TaskFile> files = taskFileIngestionService.ingest(task, pr, config, auth);
             log.info("任务 {} 文件拉取完成：files={}, durationMs={}",
                     taskId, files.size(), System.currentTimeMillis() - fetchStarted);
 
             updateProgress(taskId, TaskStatusConstant.STAGE_CONTEXT, 35);
             updateProgress(taskId, TaskStatusConstant.STAGE_AI, 50);
             long aiStarted = System.currentTimeMillis();
-            AnalysisResult result = analysisPipeline.run(task, pr, config);
+            AnalysisResult result = analysisPipeline.run(task, pr, config, auth);
             log.info("任务 {} AI 分析完成：durationMs={}, partial={}",
                     taskId, System.currentTimeMillis() - aiStarted, result.partial());
 
@@ -126,7 +139,9 @@ public class TaskWorker {
             log.warn("任务 {} 模型调用失败：{}", taskId, ex.getMessage());
             fail(taskId, ex.toTaskErrorCode(), "模型调用失败");
         } catch (GitHubApiException ex) {
-            fail(taskId, GitHubErrorMapper.toTaskErrorCode(ex), "GitHub 请求失败");
+            gitHubTokenProvider.handleFailure(auth, ex);
+            fail(taskId, GitHubErrorMapper.toTaskErrorCode(ex, auth),
+                    GitHubErrorMapper.toTaskErrorMessage(ex, auth));
         } catch (Exception ex) {
             log.error("任务 {} 分析失败", taskId, ex);
             fail(taskId, TaskErrorCodeConstant.INTERNAL_ERROR, "分析过程中发生内部错误");

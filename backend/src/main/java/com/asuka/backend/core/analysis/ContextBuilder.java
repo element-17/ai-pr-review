@@ -2,6 +2,7 @@ package com.asuka.backend.core.analysis;
 
 import com.asuka.backend.common.util.PatchLineIndex;
 import com.asuka.backend.pojo.entity.TaskFile;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubContentItem;
 import org.springframework.util.StringUtils;
@@ -31,11 +32,13 @@ public class ContextBuilder {
 
     private final GitHubClient gitHubClient;
     private final AnalysisContext taskContext;
+    private final GitHubAuth gitHubAuth;
     private final Map<String, LanguageContextExtractor> extractors;
 
-    public ContextBuilder(GitHubClient gitHubClient, AnalysisContext taskContext) {
+    public ContextBuilder(GitHubClient gitHubClient, AnalysisContext taskContext, GitHubAuth gitHubAuth) {
         this.gitHubClient = gitHubClient;
         this.taskContext = taskContext;
+        this.gitHubAuth = gitHubAuth;
         this.extractors = Map.of(
                 "typescript", new TypeScriptContextExtractor(),
                 "javascript", new TypeScriptContextExtractor(),
@@ -49,7 +52,7 @@ public class ContextBuilder {
         }
         String content = taskContext.getCache().get(path,
                 () -> gitHubClient.getFileContent(taskContext.getOwner(), taskContext.getRepo(),
-                        path, taskContext.getHeadSha()));
+                        path, taskContext.getHeadSha(), gitHubAuth));
         if (!StringUtils.hasText(content)) {
             return "";
         }
@@ -173,7 +176,7 @@ public class ContextBuilder {
         List<GitHubContentItem> items;
         try {
             items = gitHubClient.listDirectory(taskContext.getOwner(), taskContext.getRepo(),
-                    dir, taskContext.getHeadSha());
+                    dir, taskContext.getHeadSha(), gitHubAuth);
         } catch (Exception ex) {
             return "No tests found.";
         }
@@ -195,7 +198,7 @@ public class ContextBuilder {
             try {
                 List<GitHubContentItem> testDir = gitHubClient.listDirectory(
                         taskContext.getOwner(), taskContext.getRepo(),
-                        dir + "/__tests__", taskContext.getHeadSha());
+                        dir + "/__tests__", taskContext.getHeadSha(), gitHubAuth);
                 for (GitHubContentItem item : testDir) {
                     if ("file".equals(item.getType()) && selected.size() < MAX_TEST_FILES) {
                         selected.add(item.getPath());

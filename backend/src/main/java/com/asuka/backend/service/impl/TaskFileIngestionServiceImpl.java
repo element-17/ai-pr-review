@@ -10,6 +10,7 @@ import com.asuka.backend.common.util.LanguageDetector;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.pojo.entity.TaskFile;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubFileResponse;
 import com.asuka.backend.core.github.dto.GitHubPrResponse;
@@ -45,7 +46,7 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
     private final TaskFileMapper taskFileMapper;
 
     @Transactional(rollbackFor = Exception.class)
-    public List<TaskFile> ingest(AnalysisTask task, PullRequest pr, AnalysisConfigVO config) {
+    public List<TaskFile> ingest(AnalysisTask task, PullRequest pr, AnalysisConfigVO config, GitHubAuth auth) {
         String[] repo = pr.getRepoFullName().split("/", 2);
         if (repo.length != 2) {
             throw new IllegalArgumentException("仓库全名格式错误");
@@ -53,7 +54,7 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
 
         // PR files API 返回的是当前 head 的文件；先确认任务创建后 PR 没有新提交，
         // 避免 task.head_sha 与 patch/行号来自不同版本。
-        GitHubPrResponse current = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber());
+        GitHubPrResponse current = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber(), auth);
         String currentHead = current.getHead() == null ? null : current.getHead().getSha();
         if (!StringUtils.hasText(currentHead)
                 || !currentHead.equalsIgnoreCase(task.getHeadSha())) {
@@ -62,7 +63,7 @@ public class TaskFileIngestionServiceImpl implements TaskFileIngestionService {
         }
 
         List<GitHubFileResponse> files = gitHubClient.listPullRequestFiles(
-                repo[0], repo[1], pr.getPrNumber());
+                repo[0], repo[1], pr.getPrNumber(), auth);
 
         // 重新生成任务文件快照，保证重复执行不产生重复行
         taskFileMapper.delete(new LambdaQueryWrapper<TaskFile>()

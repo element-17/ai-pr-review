@@ -6,6 +6,7 @@ import com.asuka.backend.service.PullRequestService;
 import com.asuka.backend.service.RateLimitService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.UserSettingService;
+import com.asuka.backend.service.GitHubTokenProvider;
 
 import com.asuka.backend.common.constant.ReportLanguageConstant;
 import com.asuka.backend.common.exception.BusinessException;
@@ -15,6 +16,7 @@ import com.asuka.backend.pojo.dto.TaskCreateDTO;
 import com.asuka.backend.pojo.entity.AnalysisTask;
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.common.exception.GitHubApiException;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.GitHubErrorMapper;
 import com.asuka.backend.core.github.GitHubPrUrlParser;
@@ -55,6 +57,7 @@ public class TaskCreateServiceImpl implements TaskCreateService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final GitHubClient gitHubClient;
+    private final GitHubTokenProvider gitHubTokenProvider;
     private final PullRequestService pullRequestService;
     private final AnalysisTaskMapper analysisTaskMapper;
     private final UserSettingService userSettingService;
@@ -82,11 +85,14 @@ public class TaskCreateServiceImpl implements TaskCreateService {
         }
 
         GitHubPrUrlParser.PrUrl ref = GitHubPrUrlParser.parse(url);
+        GitHubAuth auth = gitHubTokenProvider.resolveForUser(userId);
         GitHubPrResponse response;
         try {
-            response = gitHubClient.getPullRequest(ref.owner(), ref.repo(), ref.number());
+            response = gitHubClient.getPullRequest(ref.owner(), ref.repo(), ref.number(), auth);
+            gitHubTokenProvider.markValidated(auth);
         } catch (GitHubApiException ex) {
-            throw GitHubErrorMapper.toBusinessException(ex);
+            gitHubTokenProvider.handleFailure(auth, ex);
+            throw GitHubErrorMapper.toBusinessException(ex, auth);
         }
         PullRequest pr = pullRequestService.upsert(ref.repoFullName(), response);
 

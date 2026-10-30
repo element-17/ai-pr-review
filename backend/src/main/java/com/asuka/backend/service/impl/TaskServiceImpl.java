@@ -15,6 +15,8 @@ import com.asuka.backend.mapper.AnalysisReportMapper;
 import com.asuka.backend.mapper.AnalysisTaskMapper;
 import com.asuka.backend.mapper.TaskFileMapper;
 import com.asuka.backend.core.analysis.AnalysisConfigParser;
+import com.asuka.backend.core.github.GitHubAuth;
+import com.asuka.backend.service.GitHubTokenProvider;
 import com.asuka.backend.service.PullRequestRefreshService;
 import com.asuka.backend.service.TaskAccessService;
 import com.asuka.backend.service.TaskService;
@@ -28,6 +30,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,6 +42,7 @@ import java.util.regex.Pattern;
  *
  * <p>任务读取统一经过 TaskAccessService，登录用户和游客链接都按同一套规则校验。
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
@@ -53,6 +57,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskStatsService taskStatsService;
     private final AnalysisConfigParser analysisConfigParser;
     private final PullRequestRefreshService pullRequestRefreshService;
+    private final GitHubTokenProvider gitHubTokenProvider;
     private final LogicalCacheService logicalCacheService;
 
     @Override
@@ -104,7 +109,7 @@ public class TaskServiceImpl implements TaskService {
             throw new BusinessException(404, "任务不存在");
         }
         // 详情页 best-effort 刷新 PR 当前 head_sha，用于 F04 过期判断；失败时使用缓存值
-        PullRequest pr = pullRequestRefreshService.refreshIfStale(task.getPrId());
+        PullRequest pr = pullRequestRefreshService.refreshIfStale(task.getPrId(), resolveTaskAuth(task));
 
         TaskDetailVO vo = new TaskDetailVO();
         vo.setTaskId(task.getId());
@@ -191,6 +196,18 @@ public class TaskServiceImpl implements TaskService {
         vo.setDeleteLines(pr.getDeleteLines());
         vo.setFileCount(pr.getFileCount());
         return vo;
+    }
+
+    /**
+     * 详情刷新失败不能影响历史报告查看；用户 token 失效时按无认证刷新一次。
+     */
+    private GitHubAuth resolveTaskAuth(AnalysisTask task) {
+        try {
+            return gitHubTokenProvider.resolveForTask(task);
+        } catch (BusinessException ex) {
+            log.debug("任务 {} 的 GitHub token 不可用，详情刷新降级为无认证请求", task.getId());
+            return GitHubAuth.none();
+        }
     }
 
     /**

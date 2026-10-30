@@ -5,6 +5,7 @@ import com.asuka.backend.service.PullRequestService;
 
 import com.asuka.backend.pojo.entity.PullRequest;
 import com.asuka.backend.common.exception.GitHubApiException;
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.core.github.GitHubClient;
 import com.asuka.backend.core.github.dto.GitHubPrResponse;
 import com.asuka.backend.mapper.PullRequestMapper;
@@ -31,7 +32,7 @@ public class PullRequestRefreshServiceImpl implements PullRequestRefreshService 
     private final PullRequestMapper pullRequestMapper;
     private final StringRedisTemplate stringRedisTemplate;
 
-    public PullRequest refreshIfStale(Long prId) {
+    public PullRequest refreshIfStale(Long prId, GitHubAuth auth) {
         PullRequest pr = pullRequestMapper.selectById(prId);
         if (pr == null) {
             return null;
@@ -47,7 +48,7 @@ public class PullRequestRefreshServiceImpl implements PullRequestRefreshService 
 
         try {
             String[] repo = pr.getRepoFullName().split("/", 2);
-            GitHubPrResponse response = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber());
+            GitHubPrResponse response = gitHubClient.getPullRequest(repo[0], repo[1], pr.getPrNumber(), auth);
             PullRequest updated = pullRequestService.upsert(pr.getRepoFullName(), response);
             try {
                 stringRedisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(60));

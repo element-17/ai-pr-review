@@ -1,5 +1,6 @@
 package com.asuka.backend.service;
 
+import com.asuka.backend.core.github.GitHubAuth;
 import com.asuka.backend.pojo.entity.PullRequest;
 
 /**
@@ -7,5 +8,5 @@ import com.asuka.backend.pojo.entity.PullRequest;
  */
 public interface PullRequestRefreshService {
 
-    PullRequest refreshIfStale(Long prId);
+    PullRequest refreshIfStale(Long prId, GitHubAuth auth);
 }
