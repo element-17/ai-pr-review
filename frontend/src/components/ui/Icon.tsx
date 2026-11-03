@@ -1,4 +1,5 @@
 const iconPaths = {
+  help: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4m.1 3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   branch:
     'M6 3v12m0-8a4 4 0 0 0 4 4h4a4 4 0 0 0 4-4V3M6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
   plus: 'M12 5v14M5 12h14',
@@ -7,6 +8,7 @@ const iconPaths = {
   file: 'M14 2H5v20h14V7l-5-5Zm0 0v6h5M8 13h8m-8 4h5',
   shield: 'm12 3 8 3v6c0 5-8 9-8 9S4 17 4 12V6l8-3Zm-4 9 3 3 5-6',
   arrow: 'M5 12h14m-5-5 5 5-5 5',
+  back: 'M19 12H5m7 7-7-7 7-7',
   chevron: 'm9 5 7 7-7 7',
   check: 'm5 12 4 4L19 6',
   globe:

@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,6 +18,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GitHubOAuthClientTest {
+
+    @Test
+    void routesOAuthRequestThroughConfiguredProxy() throws Exception {
+        try (ServerSocket proxy = new ServerSocket(0, 1, java.net.InetAddress.getLoopbackAddress())) {
+            var worker = java.util.concurrent.Executors.newSingleThreadExecutor();
+            try {
+                var requestLine = worker.submit(() -> {
+                    try (Socket socket = proxy.accept()) {
+                        socket.setSoTimeout(5000);
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+                        String first = reader.readLine();
+                        for (String line; (line = reader.readLine()) != null && !line.isEmpty();) { /* consume headers */ }
+                        String body = "{\"access_token\":\"test-token\"}";
+                        socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                                + body.length() + "\r\nConnection: close\r\n\r\n" + body).getBytes(StandardCharsets.UTF_8));
+                        return first;
+                    }
+                });
+                GitHubOAuthProperties properties = new GitHubOAuthProperties();
+                properties.setClientId("test-client");
+                properties.setClientSecret("test-secret");
+                properties.setProxyHost("127.0.0.1");
+                properties.setProxyPort(proxy.getLocalPort());
+                properties.setTokenUrl("http://github.invalid/login/oauth/access_token");
+                assertEquals("test-token", new GitHubOAuthClient(properties).exchangeCode("test-code").getAccessToken());
+                assertTrue(requestLine.get(5, java.util.concurrent.TimeUnit.SECONDS).startsWith("POST http://github.invalid/"));
+            } finally { worker.shutdownNow(); }
+        }
+    }
 
     @Test
     void callsGitHubOAuthEndpoints() throws Exception {

@@ -1,10 +1,10 @@
 import { classNames } from '../../lib/classNames'
 import styles from './DiffViewer.module.scss'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { splitDiff, toDiffLines } from '../../lib/diff'
 import type { DiffLine } from '../../lib/diff'
 import { usePreferences } from '../../lib/preferences'
-import { useFormatting } from '../../hooks'
 import type { FileDiff, Issue } from '../../lib/types'
 import type { WorkspaceProps } from '../workspace/types'
 import { Icon, Link } from '../ui'
@@ -12,7 +12,7 @@ import Highlight from './Highlight'
 
 const scrollPositions = new Map<
   string,
-  { top: number; left: number; visible: number }
+  { top: number; left: number }
 >()
 
 /** 接收文件 Diff、视图模式、可选定位行及导航信息；返回支持分批展开和问题跳转的 Diff 节点。 */
@@ -30,55 +30,55 @@ export default function DiffViewer({
   returnTo: string
 }) {
   const { t } = usePreferences()
-  const { number } = useFormatting()
   const scrollRef = useRef<HTMLDivElement>(null)
   const key = `${returnTo.split('?')[0]}:${file.fileId}:${view}`
-  const lines = toDiffLines(file.rows)
-  const focusIndex = focusLine
-    ? lines.findIndex(
-        (line) =>
-          (file.changeType === 3 ? line.oldLine : line.newLine) === focusLine,
-      )
-    : -1
-  const initialVisible = Math.max(
-    250,
-    focusIndex + 40,
-    scrollPositions.get(key)?.visible || 0,
+  const lines = useMemo(() => toDiffLines(file.rows), [file.rows])
+  const splitLines = useMemo(
+    () => (view === 'split' ? splitDiff(lines) : []),
+    [lines, view],
   )
-  const [visible, setVisible] = useState(initialVisible)
-  const count = Math.max(visible, focusIndex + 40)
-  const displayed = lines.slice(0, count)
-  const visibleRef = useRef(count)
-  useEffect(() => {
-    visibleRef.current = count
-  }, [count])
+  const issueById = useMemo(
+    () => new Map(file.issues.map((issue) => [issue.issueId, issue])),
+    [file.issues],
+  )
+  const focusIndex = useMemo(() => {
+    if (!focusLine) return -1
+    const matches = (line: DiffLine | null) =>
+      line && (file.changeType === 3 ? line.oldLine : line.newLine) === focusLine
+    return view === 'unified'
+      ? lines.findIndex(matches)
+      : splitLines.findIndex((row) => matches(row.left) || matches(row.right))
+  }, [focusLine, file.changeType, lines, splitLines, view])
+  const virtualizer = useVirtualizer({
+    count: view === 'unified' ? lines.length : splitLines.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 21,
+    overscan: 12,
+    initialOffset: () => (focusLine ? 0 : scrollPositions.get(key)?.top || 0),
+  })
+  const virtualRows = virtualizer.getVirtualItems()
+  const topPadding = virtualRows[0]?.start || 0
+  const bottomPadding = virtualRows.length
+    ? virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end
+    : 0
+
   useEffect(() => {
     const container = scrollRef.current
     const saved = scrollPositions.get(key)
-    if (container && saved && !focusLine) {
-      container.scrollTop = saved.top
-      container.scrollLeft = saved.left
-    }
-    const frame = requestAnimationFrame(() => {
-      if (focusLine && container)
-        container
-          .querySelector('[data-focused="true"]')
-          ?.scrollIntoView({ block: 'center', inline: 'nearest' })
-    })
+    if (container && saved && !focusLine) container.scrollLeft = saved.left
+    if (focusIndex >= 0) virtualizer.scrollToIndex(focusIndex, { align: 'center' })
     return () => {
-      cancelAnimationFrame(frame)
       if (container)
-        scrollPositions.set(key, {
-          top: container.scrollTop,
-          left: container.scrollLeft,
-          visible: visibleRef.current,
-        })
+        scrollPositions.set(key, { top: container.scrollTop, left: container.scrollLeft })
     }
-  }, [key, focusLine])
+  }, [key, focusLine, focusIndex, virtualizer])
   /** 接收 Diff 行；返回关联问题，删除文件按旧行号范围匹配。 */
   function markers(line: DiffLine): Issue[] {
     if (file.changeType !== 3)
-      return file.issues.filter((issue) => line.issueIds.includes(issue.issueId))
+      return line.issueIds.flatMap((id) => {
+        const issue = issueById.get(id)
+        return issue ? [issue] : []
+      })
     // 后端只按新文件侧映射 issueIds，已删除文件仍按旧行号匹配
     const number = line.oldLine
     if (number === null || line.type === 'hunk' || line.type === 'meta')
@@ -138,56 +138,58 @@ export default function DiffViewer({
       <div
         className={styles['diff-scroll']}
         ref={scrollRef}
+        style={{ height: Math.min(650, virtualizer.getTotalSize()) }}
         tabIndex={0}
         role="region"
         aria-label={`${t('files')}: ${file.filePath}`}
       >
         <table className={classNames(styles['diff-table'], styles[view])}>
           <tbody>
-            {view === 'unified'
-              ? displayed.map((line) => (
+            {topPadding > 0 && (
+              <tr aria-hidden="true"><td colSpan={4} style={{ height: topPadding }} /></tr>
+            )}
+            {virtualRows.map((virtualRow) => {
+              if (view === 'unified') {
+                const line = lines[virtualRow.index]
+                return (
                   <tr
                     key={line.index}
-                    className={classNames(
-                      styles['diff-line'],
-                      styles[line.type],
-                    )}
+                    data-index={virtualRow.index}
+                    ref={virtualizer.measureElement}
+                    className={classNames(styles['diff-line'], styles[line.type])}
                     data-focused={focused(line)}
                   >
                     <td className={styles['line-number']}>{line.oldLine}</td>
                     <td className={styles['line-number']}>{line.newLine}</td>
                     <td className={styles['line-sign']}>
-                      {line.type === 'add'
-                        ? '+'
-                        : line.type === 'delete'
-                          ? '−'
-                          : ''}
+                      {line.type === 'add' ? '+' : line.type === 'delete' ? '−' : ''}
                     </td>
                     <td className={styles['code-cell']}>
-                      <code>
-                        <Highlight text={line.content} />
-                      </code>
+                      <code><Highlight text={line.content} /></code>
                       {issueLinks(line)}
                     </td>
                   </tr>
-                ))
-              : splitDiff(displayed).map((row, index) => (
-                  <tr className={styles['diff-line']} key={index}>
-                    {cell(row.left, 'old')}
-                    {cell(row.right, 'new')}
-                  </tr>
-                ))}
+                )
+              }
+              const row = splitLines[virtualRow.index]
+              return (
+                <tr
+                  className={styles['diff-line']}
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                >
+                  {cell(row.left, 'old')}
+                  {cell(row.right, 'new')}
+                </tr>
+              )
+            })}
+            {bottomPadding > 0 && (
+              <tr aria-hidden="true"><td colSpan={4} style={{ height: bottomPadding }} /></tr>
+            )}
           </tbody>
         </table>
       </div>
-      {count < lines.length && (
-        <button
-          className={classNames('button', styles['load-more'])}
-          onClick={() => setVisible(count + 250)}
-        >
-          {t('loadMore')} ({number(Math.min(count, lines.length))}/{number(lines.length)})
-        </button>
-      )}
     </>
   )
 }

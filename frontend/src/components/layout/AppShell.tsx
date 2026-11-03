@@ -7,7 +7,9 @@ import { usePreferences, type PreferencesUpdate } from '../../lib/preferences'
 import ChangeLanguage from '../common/ChangeLanguage'
 import UserAvatar from '../account/UserAvatar'
 import UserProfileDialog from '../account/UserProfileDialog'
+import OnboardingTour from '../onboarding/OnboardingTour'
 import { ErrorNotice, Icon, Link } from '../ui'
+import { navigate } from '../../hooks'
 
 interface AppShellProps {
   pageTitle: MessageKey
@@ -38,9 +40,20 @@ export default function AppShell({
   children,
 }: AppShellProps) {
   const { t, resolvedTheme } = usePreferences()
+  const tourPage = taskPage ? 'review' : pageTitle === 'tasks' ? 'tasks' : pageTitle === 'settings' ? 'settings' : 'home'
+  const tourAudience = user ? `user:${user.id}` : 'guest'
+  const guestReview = !!new URLSearchParams(returnTo.split('?')[1]).get('guestToken')
   const [profileUserId, setProfileUserId] = useState<number | null>(null)
   if (profileUserId !== null && profileUserId !== user?.id) setProfileUserId(null)
   const profileOpen = !!user && profileUserId === user.id
+  function goBack() {
+    const state = window.history.state as { __app?: boolean; index?: number } | null
+    if (state?.__app && typeof state.index === 'number' && state.index > 0) {
+      window.history.back()
+      return
+    }
+    navigate('/')
+  }
   const userSummary = (
     <>
       <UserAvatar user={user} className={styles['user-avatar']} />
@@ -53,7 +66,10 @@ export default function AppShell({
   const nav = user ? [
     { to: '/', title: 'home', icon: 'plus' },
     { to: '/tasks', title: 'tasks', icon: 'history' },
+    { to: '/analytics', title: 'analytics', icon: 'compare' },
     { to: '/settings', title: 'settings', icon: 'settings' },
+    ...(user.role === 'ADMIN' ? [{ to: '/admin/models', title: 'modelAdminTitle', icon: 'settings' } as const] : []),
+    ...(user.role === 'ADMIN' ? [{ to: '/admin/users', title: 'userAdminTitle', icon: 'settings' } as const] : []),
   ] as const : [{ to: '/', title: 'guestHome', icon: 'globe' }] as const
   return (
     <div className={styles['app-shell']}>
@@ -76,6 +92,7 @@ export default function AppShell({
             <Link
               key={item.to}
               to={item.to}
+              data-tour={`nav-${item.title}`}
               aria-label={t(item.title)}
               title={t(item.title)}
               aria-current={
@@ -135,8 +152,24 @@ export default function AppShell({
       </aside>
       <div className={styles['main-shell']}>
         <header className={styles['topbar']}>
-          <span className={styles['topbar-title']}>{t(pageTitle)}</span>
+          <div className={styles['topbar-heading']}>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={t('back')}
+              title={t('back')}
+              onClick={goBack}
+            >
+              <Icon name="back" size={18} />
+            </button>
+            <span className={styles['topbar-title']}>{t(pageTitle)}</span>
+          </div>
           <div className={styles['topbar-actions']}>
+            <OnboardingTour
+              audience={tourAudience}
+              page={tourPage}
+              guest={!user || (taskPage && guestReview)}
+            />
             <ChangeLanguage
               disabled={appearanceBusy}
               changeLanguage={(value) =>

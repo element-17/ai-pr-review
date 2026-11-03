@@ -19,6 +19,11 @@ public class GitHubOAuthProperties {
 
     private String clientSecret = "";
 
+    /** 仅 GitHub OAuth 使用的可选 HTTP 代理，空字符串表示直连。 */
+    private String proxyHost = "";
+
+    private int proxyPort = 7890;
+
     /** GitHub OAuth App 中登记的后端回调地址 */
     private String callbackUrl = "http://localhost:8080/api/auth/github/callback";
 

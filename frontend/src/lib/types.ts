@@ -6,6 +6,7 @@ export interface User {
   nickname: string | null
   avatar: string | null
   role: string
+  passwordSet?: boolean
 }
 export interface UserProfile extends User {
   email?: string | null
@@ -31,11 +32,44 @@ export interface AnalysisConfig {
   ignoreDirs: string[]
   maxFileCount: number
   maxDiffLines: number
+  model?: ModelSnapshot | null
+}
+export type ModelProvider = 'OPENAI_CHAT' | 'ANTHROPIC_MESSAGES'
+export interface ModelSnapshot {
+  configId: number | null
+  displayName: string
+  provider: ModelProvider | string
+  modelId: string
+  source: 'USER_PREFERENCE' | 'ADMIN_DEFAULT' | 'ENV_FALLBACK' | 'ORIGINAL_TASK' | string
+}
+export interface ModelOption {
+  id: number
+  displayName: string
+  provider: ModelProvider
+  isDefault: boolean
+}
+export interface OAuthAuthorize {
+  authorizeUrl: string
+  state: string
+}
+export interface GitHubBindingStatus {
+  bound: boolean
+  githubLogin: string | null
+  avatarUrl: string | null
+  email: string | null
+  scope: string | null
+  tokenStatus: number | null
+  authorizedAt: string | null
+  lastValidatedAt: string | null
+  passwordSet: boolean
 }
 export interface Settings extends AnalysisConfig {
   theme: number
   language: Language
   updateTime?: string
+  preferredModelId?: number | null
+  preferredModelEnabled?: boolean
+  effectiveModel?: ModelSnapshot | null
 }
 export interface Pr {
   repoFullName: string
@@ -82,6 +116,8 @@ export interface IssueStats {
 }
 export interface TaskDetail extends Task {
   modelName: string | null
+  modelDisplayName?: string | null
+  modelProvider?: ModelProvider | string | null
   analysisConfig: AnalysisConfig
   errorCode: number | null
   errorMessage: string | null
@@ -107,6 +143,8 @@ export interface Report {
   taskId: number
   reportLanguage: Language
   modelName: string | null
+  modelDisplayName?: string | null
+  modelProvider?: ModelProvider | string | null
   analysisConfig: AnalysisConfig
   purpose: string | null
   changes: string | null

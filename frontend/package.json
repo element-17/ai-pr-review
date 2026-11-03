@@ -4,15 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "test:integration": "playwright test --config playwright.integration.config.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "mock": "node mock/server.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.14.23",
+    "echarts": "^6.1.0",
+    "echarts-for-react": "^3.0.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

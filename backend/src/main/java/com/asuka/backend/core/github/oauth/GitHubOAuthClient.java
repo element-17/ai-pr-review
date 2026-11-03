@@ -2,6 +2,7 @@ package com.asuka.backend.core.github.oauth;
 
 import com.asuka.backend.common.exception.GitHubOAuthException;
 import com.asuka.backend.common.properties.GitHubOAuthProperties;
+import com.asuka.backend.core.github.GitHubHttpClientFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +41,8 @@ public class GitHubOAuthClient {
 
     public GitHubOAuthClient(GitHubOAuthProperties properties) {
         this.properties = properties;
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(properties.getConnectTimeoutMs()))
-                .build();
+        HttpClient httpClient = GitHubHttpClientFactory.create(
+                properties.getConnectTimeoutMs(), properties.getProxyHost(), properties.getProxyPort());
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofMillis(properties.getReadTimeoutMs()));
         this.restClient = RestClient.builder()

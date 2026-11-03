@@ -6,17 +6,21 @@ import styles from './SettingsNavigation.module.scss'
 
 const categories = [
   { id: 'settings-appearance', title: 'appearance', analysis: false },
+  { id: 'settings-profile', title: 'profileSettings', analysis: false, account: true },
+  { id: 'settings-model', title: 'modelPreference', analysis: true },
   { id: 'settings-checks', title: 'checks', analysis: true },
   { id: 'settings-directories', title: 'ignoreDirsTitle', analysis: true },
   { id: 'settings-limits', title: 'analysisLimits', analysis: true },
+  { id: 'settings-github', title: 'githubBinding', analysis: false, account: true },
+  { id: 'settings-password', title: 'profilePassword', analysis: false, account: true },
   { id: 'settings-data', title: 'dataNotice', analysis: false },
 ] as const
-const localCategories = categories.filter(category => !category.analysis)
-
 /** 接收分析设置可用标记；返回跟随滚动高亮并可定位设置区域的导航节点。 */
-export default function SettingsNavigation({ analysisAvailable }: { analysisAvailable: boolean }) {
+export default function SettingsNavigation({ analysisAvailable, accountAvailable }: { analysisAvailable: boolean; accountAvailable: boolean }) {
   const { t } = usePreferences()
-  const sections = analysisAvailable ? categories : localCategories
+  const sections = categories.filter(category =>
+    (analysisAvailable || !category.analysis) && (!('account' in category) || !category.account || accountAvailable),
+  )
   const [active, setActive] = useState<string>(categories[0].id)
   const linksRef = useRef<HTMLOListElement>(null)
   const scrollingTo = useRef<string | null>(null)
@@ -83,6 +87,7 @@ export default function SettingsNavigation({ analysisAvailable }: { analysisAvai
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
+                data-tour={section.id === 'settings-checks' ? 'settings-navigation' : undefined}
                 aria-current={active === section.id ? 'location' : undefined}
                 onClick={event => {
                   const target = document.getElementById(section.id)

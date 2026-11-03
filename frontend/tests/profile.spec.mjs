@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.mjs'
 import { readFileSync } from 'node:fs'
 
 const zh = JSON.parse(readFileSync(new URL('../src/i18n/locales/zh-CN/common.json', import.meta.url)))
@@ -31,7 +31,7 @@ for (const [width, height, language, messages, theme] of [
     const trigger = page.getByRole('button', { name: messages.viewProfile, exact: true }).filter({ visible: true })
     await expect(trigger).toHaveCount(1)
     await trigger.focus()
-    const requested = page.waitForRequest(request => new URL(request.url()).pathname === '/api/auth/me')
+    const requested = page.waitForRequest(request => new URL(request.url()).pathname === '/api/users/me/profile')
     await page.keyboard.press('Enter')
     expect((await requested).headers().authorization).toBe(`Bearer ${session.accessToken}`)
     const dialog = page.getByRole('dialog', { name: messages.profileTitle, exact: true })
@@ -48,7 +48,8 @@ for (const [width, height, language, messages, theme] of [
     const close = dialog.getByRole('button', { name: messages.close, exact: true })
     await expect(close).toBeFocused()
     await page.keyboard.press('Tab')
-    await page.keyboard.press('Tab')
+    await expect(dialog.getByRole('link', { name: messages.profileEdit })).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
     await expect(close).toBeFocused()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     expect(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
@@ -70,7 +71,7 @@ test('每次打开重新读取当前账号接口，缺失资料有占位，头�
   const session = await openSignedInPage(page)
   const profile = { ...session.userInfo, nickname: '最新昵称', avatar: '/missing-avatar.png', role: 'USER' }
   await page.route('**/missing-avatar.png', route => route.fulfill({ status: 404, body: '' }))
-  await page.route('**/api/auth/me', route => fulfill(route, profile))
+  await page.route('**/api/users/me/profile', route => fulfill(route, profile))
   const trigger = page.getByRole('button', { name: zh.viewProfile, exact: true }).filter({ visible: true })
   await trigger.click()
   const dialog = page.getByRole('dialog', { name: zh.profileTitle, exact: true })
@@ -94,7 +95,7 @@ test('每次打开重新读取当前账号接口，缺失资料有占位，头�
 test('个人资料加载失败可重试，不回退展示缓存的资料', async ({ page }) => {
   const session = await openSignedInPage(page, 'en-US')
   let fail = true
-  await page.route('**/api/auth/me', route => fulfill(route, fail ? null : { ...session.userInfo, email: 'recovered@example.com' }, fail ? 500 : 200))
+  await page.route('**/api/users/me/profile', route => fulfill(route, fail ? null : { ...session.userInfo, email: 'recovered@example.com' }, fail ? 500 : 200))
   await page.getByRole('button', { name: en.viewProfile, exact: true }).filter({ visible: true }).click()
   const dialog = page.getByRole('dialog', { name: en.profileTitle, exact: true })
   await expect(dialog.getByText(en.serverError, { exact: true })).toBeVisible()
@@ -109,19 +110,19 @@ test('资料加载中可以关闭，重新打开不会显示上次未完成的�
   const session = await openSignedInPage(page)
   let release
   const pending = new Promise(resolve => { release = resolve })
-  await page.route('**/api/auth/me', async route => {
+  await page.route('**/api/users/me/profile', async route => {
     await pending
     await fulfill(route, { ...session.userInfo, email: 'stale@example.com' })
   })
   const trigger = page.getByRole('button', { name: zh.viewProfile, exact: true }).filter({ visible: true })
-  const requested = page.waitForRequest(request => new URL(request.url()).pathname === '/api/auth/me')
+  const requested = page.waitForRequest(request => new URL(request.url()).pathname === '/api/users/me/profile')
   await trigger.click()
   await requested
   const dialog = page.getByRole('dialog', { name: zh.profileTitle, exact: true })
   await expect(dialog.getByText(zh.loading, { exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
-  await page.route('**/api/auth/me', route => fulfill(route, { ...session.userInfo, email: 'fresh@example.com' }))
+  await page.route('**/api/users/me/profile', route => fulfill(route, { ...session.userInfo, email: 'fresh@example.com' }))
   await trigger.click()
   await expect(field(dialog, zh.profileEmail)).toHaveText('fresh@example.com')
   release()
@@ -142,7 +143,7 @@ test('游客不展示个人资料入口，不请求当前账号信息', async ({
 test('查看资料时会话失效会跳转登录，同账号重新登录后需要点击才打开资料', async ({ page }) => {
   await openSignedInPage(page)
   let expired = true
-  await page.route('**/api/auth/me', route => expired ? fulfill(route, null, 401) : route.continue())
+  await page.route('**/api/users/me/profile', route => expired ? fulfill(route, null, 401) : route.continue())
   await page.route('**/api/auth/refresh', route => fulfill(route, null, 401))
   await page.getByRole('button', { name: zh.viewProfile, exact: true }).filter({ visible: true }).click()
   await expect(page).toHaveURL(/\/login\?.*returnTo=/)

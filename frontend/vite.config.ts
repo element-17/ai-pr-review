@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: loadEnv(mode, process.cwd(), '').VITE_BASE_PATH || '/',
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] })

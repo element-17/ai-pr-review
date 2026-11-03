@@ -9,6 +9,9 @@ export function errorMessageKey(error: unknown): MessageKey {
   const key = known.find(key => key === message)
   if (key) return key
   const taskCode = error.data?.errorCode
+  if (taskCode === 10) return 'githubTokenExpired'
+  if (taskCode === 11) return 'githubServerTokenInvalid'
+  if (error.data?.githubAuthRequired === true) return 'githubTokenExpired'
   if (typeof taskCode === 'number' && Number.isInteger(taskCode) && taskCode >= 1 && taskCode <= 8) {
     return `taskError${taskCode}` as MessageKey
   }

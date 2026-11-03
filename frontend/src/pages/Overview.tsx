@@ -186,7 +186,7 @@ export default function Overview({
           <section className={classNames('card', 'compact')}>
             <h3>{t('analysisConfig')}</h3>
             <p className={classNames('small-text', 'muted')}>
-              {t('model')}: {task.modelName || '—'}
+              {t('model')}: {task.modelDisplayName || task.analysisConfig.model?.displayName || task.modelName || '—'}
             </p>
             <p className={classNames('small-text', 'muted')}>
               {t('checks')}: {task.analysisConfig.checkCategories.map(category => (

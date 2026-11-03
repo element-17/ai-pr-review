@@ -178,6 +178,21 @@ function route(method, pathname, ctx) {
 
   // ---- 用户 ----
   if (head === 'users') {
+    if (rest[0] === 'me' && rest[1] === 'profile') {
+      const current = requireUser(ctx)
+      const user = users.find(item => item.id === current.userInfo.id)
+      if (method === 'PATCH') {
+        for (const field of ['nickname', 'email', 'phone', 'avatar']) {
+          if (field in (ctx.body || {})) user[field] = ctx.body[field]
+        }
+        user.updateTime = new Date().toISOString()
+      }
+      if (method === 'GET' || method === 'PATCH') {
+        const { mockPassword, ...profile } = user
+        void mockPassword
+        return ok(profile)
+      }
+    }
     if (rest[0] === 'me' && rest[1] === 'settings') {
       requireUser(ctx)
       if (method === 'GET') return ok(settings)
@@ -209,7 +224,7 @@ function route(method, pathname, ctx) {
       users.forEach((user) => counts.set(user.role, (counts.get(user.role) || 0) + 1))
       return ok([...counts].map(([role, total]) => ({ role, total })))
     }
-    if (rest.length === 1) {
+    if (rest.length === 0) {
       requireUser(ctx)
       if (method === 'POST') {
         const { username, password } = ctx.body || {}
@@ -218,6 +233,7 @@ function route(method, pathname, ctx) {
         users.push({
           id,
           username,
+          mockPassword: password,
           nickname: ctx.body.nickname || null,
           email: ctx.body.email || null,
           phone: ctx.body.phone || null,
@@ -231,9 +247,9 @@ function route(method, pathname, ctx) {
         return ok(id, '新增成功')
       }
     }
-    if (rest.length === 2) {
+    if (rest.length === 1) {
       requireUser(ctx)
-      const user = users.find((item) => item.id === Number(rest[1]))
+      const user = users.find((item) => item.id === Number(rest[0]))
       if (!user) throw new HttpError(404, fail(404, '用户不存在'))
       if (method === 'GET') return ok(user)
       if (method === 'PUT') {
@@ -245,9 +261,9 @@ function route(method, pathname, ctx) {
         return ok(null, '删除成功')
       }
     }
-    if (rest.length === 3 && rest[2] === 'status' && method === 'PUT') {
+    if (rest.length === 2 && rest[1] === 'status' && method === 'PUT') {
       requireUser(ctx)
-      const user = users.find((item) => item.id === Number(rest[1]))
+      const user = users.find((item) => item.id === Number(rest[0]))
       if (!user) throw new HttpError(404, fail(404, '用户不存在'))
       user.status = Number(q.status)
       return ok(null, '状态已更新')

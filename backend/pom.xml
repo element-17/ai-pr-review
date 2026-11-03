@@ -108,6 +108,17 @@
 
 	<build>
 		<plugins>
+			<!-- Keep local credentials available to development, but never package them. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>application-dev.yml</exclude>
+						<exclude>application-local.yml</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

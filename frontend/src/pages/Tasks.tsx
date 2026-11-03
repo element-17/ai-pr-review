@@ -41,7 +41,7 @@ export default function Tasks({ search }: { search: string }) {
   return (
     <>
       <PageHeading title="tasks">
-        <Link className="button primary" to="/">
+        <Link data-tour="new-review" className="button primary" to="/">
           <Icon name="plus" size={17} />
           {t('home')}
         </Link>
@@ -82,6 +82,7 @@ export default function Tasks({ search }: { search: string }) {
               <span>{t('repo')}</span>
               <input
                 name="repo"
+                data-tour="task-filter"
                 placeholder="owner/repo"
                 maxLength={150}
                 defaultValue={params.get('repo') || ''}

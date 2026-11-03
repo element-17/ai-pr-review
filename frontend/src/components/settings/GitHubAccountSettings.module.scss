@@ -1,0 +1,48 @@
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+
+  h2 { margin: 0 0 6px; }
+  p { margin: 0; color: var(--muted); font-size: 12px; }
+}
+
+.valid,
+.invalid {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: var(--add-bg);
+  color: var(--positive);
+  font-size: 11px;
+}
+
+.invalid { background: var(--danger-bg); color: var(--danger); }
+
+.content { display: grid; gap: 18px; margin-top: 20px; }
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  img { flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+  div { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+  div span { color: var(--muted); font-size: 11px; }
+  button { margin-left: auto; flex: 0 0 auto; }
+}
+
+.unbound { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.unbound p { margin: 0; color: var(--muted); }
+.passwordForm { padding-top: 18px; border-top: 1px solid var(--border); }
+.passwordForm h3 { margin: 0 0 14px; font-size: 15px; }
+.passwordFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+@media (max-width: 600px) {
+  .heading, .unbound { align-items: flex-start; flex-direction: column; }
+  .identity { align-items: flex-start; flex-wrap: wrap; }
+  .identity button { margin-left: 56px; }
+  .passwordFields { grid-template-columns: 1fr; gap: 0; }
+}

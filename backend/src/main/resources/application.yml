@@ -56,7 +56,8 @@ sa-token:
   is-share: false
   is-read-header: true
   is-read-cookie: false
-  is-log: true
+  # Sa-Token 的登录日志包含访问令牌；生产及开发环境均不输出令牌。
+  is-log: false
 
 springdoc:
   api-docs:

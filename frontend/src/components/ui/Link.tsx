@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes } from 'react'
 import { navigate } from '../../hooks'
+import { withBasePath } from '../../lib/routes'
 
 /** 接收站内目标、内容和链接属性；返回支持前端路由及浏览器原生修饰键操作的链接节点。 */
 export function Link({
@@ -11,7 +12,7 @@ export function Link({
   return (
     <a
       {...props}
-      href={to}
+      href={withBasePath(to)}
       onClick={(event) => {
         onClick?.(event)
         if (

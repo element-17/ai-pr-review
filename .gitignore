@@ -29,3 +29,5 @@ backend/src/main/resources/application-dev.yml
 backend/src/main/resources/application-local.yml
 .env
 deploy/.env
+deploy/github-proxy/
+deploy/docker-compose.override.yml

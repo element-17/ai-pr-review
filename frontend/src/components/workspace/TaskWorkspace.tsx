@@ -138,6 +138,7 @@ export default function TaskWorkspace({
         <div className="actions">
           <button
             className="button"
+            data-tour="review-export"
             disabled={busy || !task.hasReport}
             onClick={() => void action('export')}
           >
@@ -174,6 +175,9 @@ export default function TaskWorkspace({
             current.errorCode <= 8 && (
               <p>{t(`taskError${current.errorCode}` as MessageKey)}</p>
             )}
+          {current.errorCode === 10 && <p>{t('githubTokenExpired')}</p>}
+          {current.errorCode === 11 && <p>{t('githubServerTokenInvalid')}</p>}
+          {current.errorCode === 10 && <Link className="button small" to="/settings">{t('githubReauthorize')}</Link>}
           {current.errorMessage && (
             <p className="preserve-lines">{current.errorMessage}</p>
           )}
@@ -223,6 +227,7 @@ export default function TaskWorkspace({
           <Link
             key={item.key}
             to={taskPath(item.suffix)}
+            data-tour={`review-${item.key}`}
             aria-current={tab === item.key ? 'page' : undefined}
           >
             <Icon name={item.icon} size={17} />
@@ -245,6 +250,7 @@ export default function TaskWorkspace({
           {!task.isExpired && [3, 4, 5, 6].includes(task.status) && reanalysisButton}
           {guestToken && (
             <button
+              data-tour="review-share"
               className={classNames('button', 'small')}
               onClick={async () => {
                 try {

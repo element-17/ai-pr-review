@@ -136,6 +136,9 @@ export const api = {
   /** 接收接口路径、请求体和可选配置；返回 PATCH 响应数据 Promise<T>。 */
   patch: <T>(path: string, body: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PATCH', body }),
+  /** 接收接口路径、可选请求体及配置；返回 PUT 响应数据 Promise<T>。 */
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: 'PUT', body }),
   /** 接收接口路径；返回 DELETE 响应数据 Promise<T>。 */
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }

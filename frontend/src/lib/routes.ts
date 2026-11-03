@@ -3,6 +3,21 @@ import { getGuestAccess } from './guestTasks'
 
 export type WorkspaceTab = 'overview' | 'files' | 'issues' | 'compare'
 
+const appBasePath = import.meta.env.BASE_URL.replace(/\/+$/, '')
+
+/** 接收站内路径；返回加上构建时部署前缀的浏览器路径。 */
+export function withBasePath(path: string) {
+  if (!appBasePath || path === appBasePath || path.startsWith(`${appBasePath}/`)) return path
+  return `${appBasePath}${path === '/' ? '/' : path}`
+}
+
+/** 接收浏览器路径；返回剥离构建时部署前缀后的应用内路径。 */
+function stripBasePath(path: string) {
+  if (!appBasePath) return path
+  if (path === appBasePath || path === `${appBasePath}/`) return '/'
+  return path.startsWith(`${appBasePath}/`) ? path.slice(appBasePath.length) : path
+}
+
 /** 接收可空数字字符串；返回安全正整数，格式或范围无效时返回 undefined。 */
 export function positiveInteger(value: string | null | undefined) {
   if (!value || !/^[1-9]\d*$/.test(value)) return undefined
@@ -27,7 +42,8 @@ export function safeReturnPath(value: string | null, fallback = '/tasks') {
 /** 接收含查询串的站内地址；返回页面、任务、子项、游客凭证和标题等路由信息。 */
 export function parseRoute(value: string) {
   const separator = value.indexOf('?')
-  const path = separator < 0 ? value : value.slice(0, separator)
+  const browserPath = separator < 0 ? value : value.slice(0, separator)
+  const path = stripBasePath(browserPath)
   const pathname = path === '/' ? '/' : path.replace(/\/$/, '')
   const search = separator < 0 ? '' : value.slice(separator + 1)
   const match = /^\/tasks\/([1-9]\d*)(?:\/(files|issues|compare)(?:\/([1-9]\d*))?)?$/.exec(pathname)
@@ -36,7 +52,8 @@ export function parseRoute(value: string) {
   const childId = positiveInteger(match?.[3])
   if (match?.[3] && (!childId || tab === 'compare')) taskId = undefined
   const titles: Record<string, MessageKey> = {
-    '/': 'home', '/tasks': 'tasks', '/settings': 'settings', '/login': 'login', '/register': 'register',
+    '/': 'home', '/tasks': 'tasks', '/analytics': 'analytics', '/settings': 'settings', '/login': 'login', '/register': 'register',
+    '/auth/github/callback': 'githubCallback', '/admin/models': 'modelAdminTitle', '/admin/users': 'userAdminTitle',
   }
   return {
     pathname, search, taskId, tab,
@@ -50,7 +67,19 @@ export function parseRoute(value: string) {
 /** 接收站内目标路径；更新浏览器历史、触发路由刷新并滚动到顶部，无返回值。 */
 export function navigate(path: string) {
   const target = safeReturnPath(path, '/')
-  window.history.pushState(null, '', target)
+  const browserTarget = appBasePath && target !== appBasePath && !target.startsWith(`${appBasePath}/`)
+    ? `${appBasePath}${target === '/' ? '/' : target}`
+    : target
+  const current = window.history.state as { __app?: boolean; index?: number } | null
+  const index = current?.__app && typeof current.index === 'number' ? current.index + 1 : 1
+  window.history.pushState({ __app: true, index }, '', browserTarget)
   window.dispatchEvent(new PopStateEvent('popstate'))
   window.scrollTo({ top: 0 })
+}
+
+/** 为当前直接打开的地址建立应用内历史起点，避免返回键退出到空白页。 */
+export function initializeNavigation() {
+  const current = window.history.state as { __app?: boolean; index?: number } | null
+  if (current?.__app && typeof current.index === 'number') return
+  window.history.replaceState({ ...(current || {}), __app: true, index: 0 }, '', window.location.href)
 }

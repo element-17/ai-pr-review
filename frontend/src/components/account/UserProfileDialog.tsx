@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import { useResource } from '../../hooks'
 import { usePreferences } from '../../lib/preferences'
 import type { UserProfile } from '../../lib/types'
-import { DateText, ResourceState } from '../ui'
+import { DateText, Link, ResourceState } from '../ui'
 import UserAvatar from './UserAvatar'
 import styles from './UserProfileDialog.module.scss'
 
@@ -11,7 +11,7 @@ export default function UserProfileDialog({ onClose }: { onClose: () => void }) 
   const { t } = usePreferences()
   const titleId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const profile = useResource<UserProfile>('/auth/me')
+  const profile = useResource<UserProfile>('/users/me/profile')
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
@@ -68,6 +68,7 @@ export default function UserProfileDialog({ onClose }: { onClose: () => void }) 
               <div key={field}><dt>{t(label)}</dt><dd>{user[field] ? <DateText value={user[field]} /> : t('notProvided')}</dd></div>
             ))}
           </dl>
+          <Link className="button" to="/settings" onClick={onClose}>{t('profileEdit')}</Link>
         </>
       )}
     </dialog>

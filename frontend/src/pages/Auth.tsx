@@ -32,6 +32,20 @@ export default function Auth({
   const [validation, setValidation] = useState<RegistrationErrors>({})
   const params = new URLSearchParams(search)
   const returnTo = safeReturnPath(params.get('returnTo'))
+  async function startGitHubLogin() {
+    if (busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      sessionStorage.setItem('pr-review.github-return-to', returnTo)
+      const result = await api.get<{ authorizeUrl: string }>('/auth/github/login/authorize', { public: true })
+      window.location.assign(result.authorizeUrl)
+    } catch (caught) {
+      sessionStorage.removeItem('pr-review.github-return-to')
+      setError(caught)
+      setBusy(false)
+    }
+  }
   /** 接收表单事件和首次显示错误标记；按需更新对应注册字段错误，无返回值。 */
   function validateField(event: FormEvent<HTMLFormElement>, reveal = false) {
     const input = event.target
@@ -225,6 +239,15 @@ export default function Auth({
             </button>
           </fieldset>
         </form>
+        <button
+          type="button"
+          className={classNames('button', 'full-width', styles['github-login'])}
+          disabled={busy}
+          onClick={() => void startGitHubLogin()}
+        >
+          <Icon name="branch" size={17} />
+          {busy ? t('loading') : t('githubLogin')}
+        </button>
         <p className={styles['auth-switch']}>
           {t(register ? 'haveAccount' : 'noAccount')}{' '}
           <Link

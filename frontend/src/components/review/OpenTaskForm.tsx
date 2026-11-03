@@ -16,6 +16,7 @@ export default function OpenTaskForm({ guest = false }: { guest?: boolean }) {
   const [invalid, setInvalid] = useState<'invalidTask' | 'guestAccessRequired' | null>(null)
   return (
     <form
+      data-tour="open-task"
       className={classNames(styles.form, guest && styles.guest)}
       onSubmit={event => {
         event.preventDefault()

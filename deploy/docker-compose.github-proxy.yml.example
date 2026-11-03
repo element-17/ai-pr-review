@@ -1,0 +1,19 @@
+# 可复制为 docker-compose.override.yml 使用；订阅配置和二进制均放在 github-proxy 目录，不应提交。
+services:
+  github-proxy:
+    image: nginx:1.27-alpine
+    user: "101:101"
+    entrypoint: ["/usr/local/bin/mihomo", "-d", "/tmp/github-proxy", "-f", "/etc/github-proxy/config.yaml"]
+    restart: unless-stopped
+    mem_limit: 192m
+    cpus: 0.50
+    pids_limit: 128
+    volumes:
+      - ./github-proxy/mihomo:/usr/local/bin/mihomo:ro
+      - ./github-proxy/config.yaml:/etc/github-proxy/config.yaml:ro
+      - ./github-proxy/provider:/tmp/github-proxy
+  backend:
+    environment:
+      # 可根据匿名 GitHub API 限流情况另外设置 PR_GITHUB_PROXY_HOST。
+      PR_GITHUB_OAUTH_PROXY_HOST: github-proxy
+      PR_GITHUB_OAUTH_PROXY_PORT: "7890"

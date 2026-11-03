@@ -18,6 +18,11 @@ public class GitHubProperties {
     /** 服务端 GitHub Token，可为空 */
     private String token = "";
 
+    /** 仅 GitHub API 使用的可选 HTTP 代理，空字符串表示直连。 */
+    private String proxyHost = "";
+
+    private int proxyPort = 7890;
+
     /** GitHub REST API 地址 */
     private String apiBaseUrl = "https://api.github.com";
 

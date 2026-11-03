@@ -15,14 +15,10 @@ export default function Home({ search = '' }: { search?: string }) {
       </div>
       <div className={styles['review-studio']}>
         <section className={styles['hero']}>
-          <span className="eyebrow">
-            <span className={styles['editorial-dash']} /> {t('homeKicker')}
-          </span>
           <h1>
             {t('homeTitle')}
             <em>{t('homeTitleAccent')}</em>
           </h1>
-          <p>{t('homeDescription')}</p>
         </section>
         <section className={classNames('card', styles['new-review-card'])}>
           <div className={styles['section-label']}>
@@ -34,7 +30,7 @@ export default function Home({ search = '' }: { search?: string }) {
         <figure className={styles['review-scene']}>
           <div className={styles['review-scene-image']}>
             <img
-              src="/images/review-desk.webp"
+              src={`${import.meta.env.BASE_URL}images/review-desk.webp`}
               alt={t('deskImageAlt')}
               width="1122"
               height="1402"

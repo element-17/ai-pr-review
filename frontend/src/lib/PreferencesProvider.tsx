@@ -1,8 +1,8 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import type { Language } from './types'
 import { translate } from '../i18n'
-import { PreferencesContext } from './preferences'
+import { PreferencesContext, type PreferencesUpdate } from './preferences'
 
 interface Preferences {
   language: Language
@@ -40,6 +40,8 @@ function systemIsDark() {
 /** 接收子节点；返回提供主题、语言、更新方法和翻译函数的上下文节点。 */
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, updatePreferences] = useState(initialPreferences)
+  const setPreferences = useCallback((values: PreferencesUpdate) =>
+    updatePreferences(current => ({ ...current, ...values })), [])
   const prefersDark = useSyncExternalStore(subscribeSystemTheme, systemIsDark)
   const [hour, setHour] = useState(() => new Date().getHours())
   useEffect(() => {
@@ -71,8 +73,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         ...preferences,
         resolvedTheme,
         /** 接收部分偏好字段；合并更新本地状态，无返回值。 */
-        setPreferences: (values) =>
-          updatePreferences((current) => ({ ...current, ...values })),
+        setPreferences,
         /** 接收翻译键；返回当前界面语言的文案。 */
         t: (key) => translate(preferences.language, key),
       }}

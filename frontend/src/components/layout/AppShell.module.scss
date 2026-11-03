@@ -195,6 +195,13 @@
   background: color-mix(in srgb, var(--bg) 80%, var(--surface));
 }
 
+.topbar-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .topbar-title {
   font-size: 12px;
   color: var(--text);
@@ -366,9 +373,15 @@
     display: flex;
     gap: 5px;
     margin: 0 0 0 auto;
+    min-width: 0;
     width: auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
 
     a {
+      flex: 0 0 auto;
       padding: 8px 12px;
     }
   }

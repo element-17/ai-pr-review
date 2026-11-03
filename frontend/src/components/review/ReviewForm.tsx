@@ -65,6 +65,7 @@ export default function ReviewForm({ search = '', guest = false }: { search?: st
           <Icon name="code" />
           <input
             type="url"
+            data-tour="pr-url"
             disabled={busy}
             required
             value={url}
@@ -82,12 +83,12 @@ export default function ReviewForm({ search = '', guest = false }: { search?: st
       <div className={styles.options}>
         <label className="field">
           <span>{t('reportLanguage')}</span>
-          <select aria-label={t('reportLanguage')} disabled={busy} value={reportLanguage} onChange={event => setReportLanguage(event.target.value as Language)}>
+          <select data-tour="report-language" aria-label={t('reportLanguage')} disabled={busy} value={reportLanguage} onChange={event => setReportLanguage(event.target.value as Language)}>
             <option value="zh-CN">{t('chinese')}</option>
             <option value="en-US">{t('english')}</option>
           </select>
         </label>
-        <button className="button primary" disabled={!analysisEnabled || busy || (!!preview && !consent)}>
+        <button data-tour="review-submit" className="button primary" disabled={!analysisEnabled || busy || (!!preview && !consent)}>
           {busy ? t('loading') : preview ? t('start') : t('preview')}
           <Icon name="arrow" size={17} />
         </button>

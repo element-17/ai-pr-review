@@ -49,9 +49,8 @@ public class GitHubClient {
     private final RestClient restClient;
 
     public GitHubClient(GitHubProperties properties) {
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(properties.getConnectTimeoutMs()))
-                .build();
+        HttpClient httpClient = GitHubHttpClientFactory.create(
+                properties.getConnectTimeoutMs(), properties.getProxyHost(), properties.getProxyPort());
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofMillis(properties.getReadTimeoutMs()));
 

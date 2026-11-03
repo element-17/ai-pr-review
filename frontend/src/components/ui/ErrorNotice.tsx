@@ -2,6 +2,7 @@ import { usePreferences } from '../../lib/preferences'
 import { errorMessageKey } from '../../lib/errors'
 import { Notice } from './Notice'
 import { Link } from './Link'
+import { ApiError } from '../../lib/api'
 
 /** 接收错误和可选重试回调；返回本地化错误提示及适用的恢复操作节点。 */
 export function ErrorNotice({
@@ -21,6 +22,9 @@ export function ErrorNotice({
         <Link className="button small" to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}>{t('login')}</Link>
       )}
       {key === 'guestLinkExpired' && <Link className="button small" to="/">{t('openTask')}</Link>}
+      {error instanceof ApiError && error.data?.githubAuthRequired === true && (
+        <Link className="button small" to="/settings">{t('githubReauthorize')}</Link>
+      )}
       {retry && (
         <button className="button small" onClick={retry}>
           {t('retry')}

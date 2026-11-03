@@ -12,6 +12,7 @@ import com.asuka.backend.pojo.dto.UserUpdateDTO;
 import com.asuka.backend.pojo.entity.User;
 import com.asuka.backend.mapper.UserMapper;
 import com.asuka.backend.service.UserService;
+import com.asuka.backend.service.UserSessionRevoker;
 import com.asuka.backend.pojo.vo.RoleCountVO;
 import com.asuka.backend.pojo.vo.UserVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,6 +42,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    private final UserSessionRevoker sessionRevoker;
 
     /**
      * 常规分页：使用 MP 条件构造器 + 分页插件。
@@ -166,6 +169,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(404, "用户不存在");
         }
 
+        boolean roleChanged = StringUtils.hasText(dto.getRole()) && !dto.getRole().equals(user.getRole());
+        boolean disabling = dto.getStatus() != null && dto.getStatus() == 0;
+        if (id.equals(UserContext.getUserId()) && (roleChanged || disabling)) {
+            throw new BusinessException(400, "不能禁用或更改当前登录用户的角色");
+        }
         // 只更新传入的字段，未传字段保持原值
         if (dto.getNickname() != null) {
             user.setNickname(dto.getNickname());
@@ -184,10 +192,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if (StringUtils.hasText(dto.getRole())) {
             user.setRole(dto.getRole());
-            // 角色变更后旧会话仍保留原角色，建议让该用户重新登录
         }
 
         updateById(user);
+        if (roleChanged || disabling) sessionRevoker.revoke(id);
     }
 
     @Override
@@ -202,10 +210,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!removed) {
             throw new BusinessException(404, "用户不存在或已删除");
         }
+        sessionRevoker.revoke(id);
     }
 
     @Override
     public void changeStatus(Long id, Integer status) {
+        if (id.equals(UserContext.getUserId()) && status == 0) {
+            throw new BusinessException(400, "不能禁用当前登录用户");
+        }
         User update = new User();
         update.setId(id);
         update.setStatus(status);
@@ -215,6 +227,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!updated) {
             throw new BusinessException(404, "用户不存在");
         }
+        if (status == 0) sessionRevoker.revoke(id);
     }
 
     @Override

@@ -25,5 +25,15 @@ test-results/
 *.sln
 *.sw?
 
-tests
-test-results
+tests/*
+integration/
+mock/
+mocks/
+__tests__/
+__mocks__/
+*.test.*
+*.spec.*
+playwright*.config.*
+test-results/
+!tests/github-callback.spec.mjs
+!tests/user-settings-admin.spec.mjs

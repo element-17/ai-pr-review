@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { api, ApiError } from './lib/api'
 import { setSession } from './lib/session'
 import { navigate, useRoute, useSession } from './hooks'
@@ -6,7 +6,7 @@ import { PreferencesProvider } from './lib/PreferencesProvider'
 import { usePreferences, type PreferencesUpdate } from './lib/preferences'
 import type { Settings as UserSettings, User } from './lib/types'
 import { Empty, Link } from './components/ui'
-import { parseRoute } from './lib/routes'
+import { initializeNavigation, parseRoute } from './lib/routes'
 import AppShell from './components/layout/AppShell'
 import Home from './pages/Home'
 import GuestHome from './pages/GuestHome'
@@ -18,6 +18,10 @@ import Issues from './pages/Issues'
 import Files from './pages/Files'
 import Settings from './pages/Settings'
 import Compare from './pages/Compare'
+import GitHubCallback from './pages/GitHubCallback'
+import AdminModels from './pages/AdminModels'
+import AdminUsers from './pages/AdminUsers'
+const Analytics = lazy(() => import('./pages/Analytics'))
 
 /** 无参数；返回包裹偏好上下文的应用根节点。 */
 function App() {
@@ -41,6 +45,9 @@ function Application() {
   const { pathname, search, taskId, tab, guestToken, pageTitle: routeTitle, fileId, issueId } = parseRoute(route)
   const pageTitle = !session && pathname === '/' ? 'guestHome' : routeTitle
   const userId = session?.userInfo.id
+  useEffect(() => {
+    initializeNavigation()
+  }, [])
   useEffect(() => {
     if (!userId) return
     const controller = new AbortController()
@@ -103,7 +110,15 @@ function Application() {
           ) : pathname === '/tasks' ? (
             <Tasks search={search} />
           ) : pathname === '/settings' ? (
-            <Settings />
+            <Settings search={search} />
+          ) : pathname === '/auth/github/callback' ? (
+            <GitHubCallback search={search} />
+          ) : pathname === '/admin/models' && session?.userInfo.role === 'ADMIN' ? (
+            <AdminModels />
+          ) : pathname === '/admin/users' && session?.userInfo.role === 'ADMIN' ? (
+            <AdminUsers />
+          ) : pathname === '/analytics' ? (
+            <Suspense fallback={null}><Analytics /></Suspense>
           ) : taskId !== undefined ? (
             <TaskWorkspace
               key={`${taskId}:${guestToken}`}

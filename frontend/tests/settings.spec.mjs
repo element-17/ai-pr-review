@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.mjs'
 import { readFileSync } from 'node:fs'
 
 const zh = JSON.parse(readFileSync(new URL('../src/i18n/locales/zh-CN/common.json', import.meta.url)))
@@ -86,15 +86,15 @@ for (const [width, language, messages] of [[1440, 'zh-CN', zh], [768, 'zh-CN', z
     await initialize(page, { signedIn: true, language })
     await page.goto('/settings')
     const navigation = page.getByRole('navigation', { name: messages.settingsNavigation, exact: true })
-    await expect(navigation.getByRole('link')).toHaveCount(5)
+    await expect(navigation.getByRole('link')).toHaveCount(9)
     await page.locator('textarea[name="ignoreDirs"]').fill('.git\nbuild')
     await navigation.getByRole('link', { name: messages.analysisLimits, exact: true }).click()
     await expect(navigation.getByRole('link', { name: messages.analysisLimits, exact: true })).toHaveAttribute('aria-current', 'location')
     await page.getByLabel(messages.maxFiles, { exact: true }).fill('87')
     const requested = page.waitForRequest(request => new URL(request.url()).pathname === '/api/users/me/settings' && request.method() === 'PATCH')
-    await page.getByRole('button', { name: messages.save, exact: true }).click()
+    await page.locator('#settings-limits').getByRole('button', { name: messages.save, exact: true }).click()
     expect((await requested).postDataJSON()).toMatchObject({ ignoreDirs: ['.git', 'build'], maxFileCount: 87 })
-    await expect(page.getByText(messages.saved, { exact: true })).toBeVisible()
+    await expect(page.locator('#settings-limits').getByText(messages.saved, { exact: true })).toBeVisible()
     await navigation.getByRole('link', { name: messages.dataNotice, exact: true }).click()
     await expect(navigation.getByRole('link', { name: messages.dataNotice, exact: true })).toHaveAttribute('aria-current', 'location')
     expect(await page.locator('#settings-data').evaluate(element => {
@@ -119,8 +119,8 @@ test('设置加载失败时导航只显示可用分类，重试后补齐分析�
   await page.goto('/settings')
   const navigation = page.getByRole('navigation', { name: zh.settingsNavigation, exact: true })
   await expect(page.getByText(zh.serverError, { exact: true })).toBeVisible()
-  await expect(navigation.getByRole('link')).toHaveCount(2)
-  failed = false
-  await page.getByRole('button', { name: zh.retry, exact: true }).click()
   await expect(navigation.getByRole('link')).toHaveCount(5)
+  failed = false
+  await page.getByRole('button', { name: zh.retry, exact: true }).first().click()
+  await expect(navigation.getByRole('link')).toHaveCount(9)
 })

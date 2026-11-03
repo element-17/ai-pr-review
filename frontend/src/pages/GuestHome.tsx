@@ -36,7 +36,7 @@ export default function GuestHome({ search = '' }: { search?: string }) {
             <OpenTaskForm guest />
             <p className={styles.hint}>{t('guestAccessHint')}</p>
           </section>
-          <section className={styles.account} aria-labelledby="guest-account-title">
+          <section data-tour="guest-account" className={styles.account} aria-labelledby="guest-account-title">
             <h2 id="guest-account-title">{t('guestAccountTitle')}</h2>
             <p>{t('guestAccountDescription')}</p>
             <div className="actions wrap">

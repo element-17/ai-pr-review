@@ -6,10 +6,13 @@ import type { Settings as UserSettings } from '../lib/types'
 import Appearance from '../components/settings/Appearance'
 import SettingsForm from '../components/settings/SettingsForm'
 import SettingsNavigation from '../components/settings/SettingsNavigation'
+import GitHubAccountSettings from '../components/settings/GitHubAccountSettings'
+import ModelPreference from '../components/settings/ModelPreference'
+import ProfileSettings from '../components/settings/ProfileSettings'
 import { Icon, Notice, PageHeading, ResourceState } from '../components/ui'
 
 /** 无参数；返回外观设置、登录用户分析设置和数据说明组成的设置页面节点。 */
-export default function Settings() {
+export default function Settings({ search = '' }: { search?: string }) {
   const { t } = usePreferences()
   const session = useSession()
   const resource = useResource<UserSettings>(
@@ -19,9 +22,10 @@ export default function Settings() {
     <div className={styles.page}>
       <PageHeading title="settings" description="settingsDescription" />
       <div className={styles['settings-layout']}>
-        <SettingsNavigation analysisAvailable={!!resource.data} />
+        <SettingsNavigation analysisAvailable={!!resource.data} accountAvailable={!!session} />
         <div className={classNames('stack', styles['settings-content'])}>
           <Appearance />
+          {session && <ProfileSettings />}
           {!session && <Notice>{t('localSettings')}</Notice>}
           <ResourceState
             loading={resource.loading}
@@ -29,11 +33,15 @@ export default function Settings() {
             retry={resource.reload}
           />
           {resource.data && (
-            <SettingsForm
-              key={resource.data.updateTime || 'defaults'}
-              initial={resource.data}
-            />
+            <>
+              <ModelPreference initial={resource.data} />
+              <SettingsForm
+                key={resource.data.updateTime || 'defaults'}
+                initial={resource.data}
+              />
+            </>
           )}
+          {session && <GitHubAccountSettings search={search} />}
           <section id="settings-data" tabIndex={-1} aria-labelledby="data-heading" className={classNames('card', styles['settings-notice'])}>
             <Icon name="shield" size={28} />
             <h2 id="data-heading">{t('dataNotice')}</h2>
